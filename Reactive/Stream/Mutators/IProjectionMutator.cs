@@ -1,8 +1,6 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System.Diagnostics.Contracts;
-
 namespace Soe.Reactive
 {
     /// <summary>
@@ -23,7 +21,6 @@ namespace Soe.Reactive
         /// <param name="value">The object that provides notification information</param>
         /// <param name="result">The transformed object that provides notification information</param>
         /// <returns>True if the transformation is valid, false otherwise</returns>
-        [Pure]
         bool Invoke(in TIn value, out TOut result);
     }
     
@@ -47,7 +44,6 @@ namespace Soe.Reactive
         /// <param name="key">The object that provides information to the conditional branching</param>
         /// <param name="result">The transformed object that provides notification information</param>
         /// <returns>True if the transformation is valid, false otherwise</returns>
-        [Pure]
         bool Invoke(in T value, out TKey key, out TValue result);
     }
 }

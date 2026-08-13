@@ -26,6 +26,7 @@ namespace Soe.Reactive
         /// <typeparam name="SubscriptionStrategy">An object managing how subscribers are handled</typeparam>
         /// <returns>The newly created breakout node</returns>
         /// <exception cref="ChannelConnectionFailedException">An exception thrown when connecting to the data source failed</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Observable<T, DispatchingStrategy, SubscriptionStrategy> Scope<T, DispatchingStrategy, SubscriptionStrategy>(this IObservable<T> observable, ObservableStrategy<T, DispatchingStrategy, SubscriptionStrategy> strategy, out IDisposable disposable)
             where DispatchingStrategy : struct, IDispatchingStrategy<T>
             where SubscriptionStrategy : struct, ISubscriptionStrategy<T>
@@ -114,6 +115,7 @@ namespace Soe.Reactive
         /// <returns>The newly created breakout node</returns>
         /// <typeparam name="TKey">The object that provides information about the target subscriptions</typeparam>
         /// <exception cref="ChannelConnectionFailedException">An exception thrown when connecting to the data source failed</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Observable<TValue, DispatchingStrategy, SubscriptionStrategy> Scope<TKey, TValue, DispatchingStrategy, SubscriptionStrategy>(this IObservable<TKey, TValue> observable, TKey subscriptionKey, ObservableStrategy<TValue, DispatchingStrategy, SubscriptionStrategy> strategy, out IDisposable disposable)
             where DispatchingStrategy : struct, IDispatchingStrategy<TValue>
             where SubscriptionStrategy : struct, ISubscriptionStrategy<TValue>

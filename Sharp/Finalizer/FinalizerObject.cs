@@ -39,6 +39,7 @@ namespace System
         }
 
         /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
             if (Dispose(true))

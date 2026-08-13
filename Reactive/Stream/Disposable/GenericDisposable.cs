@@ -37,8 +37,7 @@ namespace Soe.Reactive
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override void DisposeInternal()
         {
-            Handler handler = default;
-            handler.Invoke(target, instance);
+            Handler.Invoke(target, instance);
         }
     }
     
@@ -77,8 +76,7 @@ namespace Soe.Reactive
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override void DisposeInternal()
         {
-            Handler handler = default;
-            handler.Invoke(target, key, instance);
+            Handler.Invoke(target, key, instance);
         }
     }
 }

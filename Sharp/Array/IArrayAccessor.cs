@@ -12,7 +12,7 @@ namespace System
     #else
     internal
     #endif
-    interface IArrayAccessor<T>
+    interface IArrayAccessor<T> : ISequence<T>
         where T : class?
     {
         /// <summary>
@@ -31,12 +31,6 @@ namespace System
         {
             get;
         }
-            
-        /// <summary>
-        /// Creates a new span over the elements in the array
-        /// </summary>
-        /// <returns>The span created</returns>
-        Span<T> AsSpan();
 
         /// <summary>
         /// Resets the elements in the underlying collection to null

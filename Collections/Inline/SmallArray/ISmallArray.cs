@@ -14,15 +14,9 @@ namespace Soe.Collections.Inline
     #else
     internal
     #endif
-    interface ISmallArray<T>
+    interface ISmallArray<T> : ISequence<T>
         where T : class?
     {
-        /// <summary>
-        /// Creates a new span over the elements in the array
-        /// </summary>
-        /// <returns>The span created</returns>
-        Span<T> AsSpan();
-        
         /// <summary>
         /// Searches for the specified object and returns the index of its first occurrence in the array
         /// </summary>

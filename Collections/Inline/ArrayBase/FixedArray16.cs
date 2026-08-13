@@ -35,7 +35,7 @@ namespace Soe.Collections.Inline
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int IndexOf(T item)
         {
-            return MemoryMarshal.CreateSpan(ref Unsafe.As<object, IntPtr>(ref element0), DefaultCapacity).IndexOf(Unsafe.As<T, IntPtr>(ref item));
+            return SpanHelper.IndexOf(AsSpan(), item);
         }
     }
 }
