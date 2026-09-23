@@ -1,10 +1,7 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System;
 using System.Buffers;
-using System.Diagnostics;
-using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -22,6 +19,9 @@ namespace Soe.Composable
     #endif
     partial class PageAllocator : FinalizerObject, IMemoryAllocator
     {
+        /// <summary>
+        /// The maximum amount of pages allocated by a <see cref="PageAllocator"/> instance
+        /// </summary>
         public const int MaxPageCount = UInt16.MaxValue;
         
         private readonly MemoryMappedFile pages;
@@ -146,6 +146,7 @@ namespace Soe.Composable
             }
         }
 
+        /// <inheritdoc/>
         protected override bool Dispose(bool disposing)
         {
             if (base.Dispose(disposing))

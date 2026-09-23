@@ -1,32 +1,39 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System.Collections;
 using System.Runtime.CompilerServices;
 using Soe.Collections.Embedded;
 using Soe.Threading;
 
 namespace Soe.Composable
 {
+    /// <summary>
+    /// Manages the lifetime of composable object identities
+    /// </summary>
     #if EXPORT_HAMPER_CORE_COMPOSITION
     public
     #else
     internal
     #endif
-    class Entities : SparseArray, IReadOnlySequence<EntityId>
+    class Entities : SparseArray, IReadOnlyIterable<EntityId, ReadOnlyIterator<EntityId>.DefaultStrategy>, IReadOnlySequence<EntityId>
     {
         private readonly Shard shard;
         private EntityId freeList;
         private int maxID;
 
         private EmbeddedList<EntityId> entities;
-
+        /// <summary>
+        /// Gets the maximum number of active object identities
+        /// </summary>
         public int Capacity
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return Length * (MemoryAllocator.BlockSize >> MemoryAllocator.BlockShift); }
         }
 
+        /// <summary>
+        /// Gets the current number of active object identities active
+        /// </summary>
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -39,6 +46,10 @@ namespace Soe.Composable
             }
         }
         
+        /// <summary>
+        /// Initializes the identity store on a specific <see cref="Shard"/>
+        /// </summary>
+        /// <param name="shard">The <see cref="Shard"/> this identity store belongs to</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Entities(Shard shard)
         {
@@ -55,9 +66,12 @@ namespace Soe.Composable
             // Requires at least immutable access when scheduled
             AccessManager.ThrowOnLessAccessible<Entities>(this, AccessType.Immutable);
             
-            return entities.AsReadOnlySpan();
+            return entities.AsSpan();
         }
         
+        /// <summary>
+        /// Removes and invalidates all object identities currently active
+        /// </summary>
         public void Clear()
         {
             IMemoryAllocator allocator = shard;
@@ -74,6 +88,12 @@ namespace Soe.Composable
             this.maxID = 0;
         }
 
+        /// <summary>
+        /// Creates a new composable object identity
+        /// </summary>
+        /// <returns>The created object identity</returns>
+        /// <exception cref="AccessViolationException">Thrown if the registry was unable to reuse a disposed object identity.
+        /// This might indicate a corrupted memory block</exception>
         public EntityId Create()
         {
             // Requires mutable access when scheduled
@@ -124,6 +144,13 @@ namespace Soe.Composable
             return entity;
         }
 
+        /// <summary>
+        /// Disposes a composable object instance and invalidates it
+        /// </summary>
+        /// <param name="entity">The object identity to dispose</param>
+        /// <returns>True if the object identity was successfully disposed from the registry, false otherwise</returns>
+        /// <exception cref="AccessViolationException">Thrown if the registry was unable to chain the disposed object identity.
+        /// This might indicate a corrupted memory block</exception>
         public bool Dispose(EntityId entity)
         {
             // Requires mutable access when scheduled
@@ -160,13 +187,19 @@ namespace Soe.Composable
             }
             return false;
         }
-
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Swap(int oldIndex, int newIndex)
         {
             (entities[oldIndex], entities[newIndex]) = (entities[newIndex], entities[oldIndex]);
         }
 
+        /// <summary>
+        /// Tries to receive the currently active object identity from the provided entity
+        /// </summary>
+        /// <param name="entity">The entity to receive an object identity from</param>
+        /// <param name="result">The object identity currently stored in the registry</param>
+        /// <returns>True if the registry contains an object identity for the given entity, false otherwise</returns>
         public bool TryGet(EntityId entity, out EntityId result)
         {
             // Requires at least immutable access when scheduled
@@ -188,5 +221,14 @@ namespace Soe.Composable
             result = EntityId.Invalid;
             return false;
         }
+
+        #region IReadOnlyIterable Members
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        ReadOnlyIterator<EntityId, ReadOnlyIterator<EntityId>.DefaultStrategy> IReadOnlyIterable<EntityId, ReadOnlyIterator<EntityId>.DefaultStrategy>.GetEnumerator()
+        {
+            return new ReadOnlyIterator<EntityId, ReadOnlyIterator<EntityId>.DefaultStrategy>(AsReadOnlySpan());
+        }
+        #endregion
     }
 }

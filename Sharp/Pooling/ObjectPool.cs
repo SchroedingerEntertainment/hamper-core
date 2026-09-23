@@ -80,17 +80,20 @@ namespace System.Buffers
         {
             if (!Disposed)
             {
-                if (pool.TryDequeue(ref array, out T? instance))
+                using(ScopedDisposable.Acquire<ConcurrentBuffer<T>, ConcurrentBuffer<T>.ExclusiveOperation>(ref pool))
                 {
-                    if(instance != null)
+                    if (pool.TryDequeue(ref array, out T? instance))
                     {
-                        // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable
+                        if (instance != null)
+                        {
+                            // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable
 
-                        policy.OnRent(ref instance);
+                            policy.OnRent(ref instance);
 
-                        // ReSharper restore PossiblyImpureMethodCallOnReadonlyVariable
+                            // ReSharper restore PossiblyImpureMethodCallOnReadonlyVariable
 
-                        return instance;
+                            return instance;
+                        }
                     }
                 }
                 // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable
@@ -114,7 +117,7 @@ namespace System.Buffers
                 policy.OnReturn(ref instance);
                 
                 // ReSharper restore PossiblyImpureMethodCallOnReadonlyVariable
-
+                
                 if (!pool.TryEnqueue(ref array, instance, out _))
                 {
                     // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable

@@ -1,8 +1,6 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System;
-
 namespace Soe.Threading
 {
     /// <summary>
@@ -24,10 +22,11 @@ namespace Soe.Threading
         }
 
         /// <summary>
-        /// Determines if the provided order ID is in conflict with this policy 
+        /// Resolves a potential dependency and tells the task scheduler how to operate on this task
         /// </summary>
-        /// <param name="order">An order ID to compare</param>
-        /// <returns>True if access conflicts with the provided order ID, false otherwise</returns>
-        static abstract bool IsConflicting(AccessType order);
+        /// <param name="order">The current order bits to probe</param>
+        /// <param name="flags">A collection of flags returned to the scheduler by previous operations</param>
+        /// <returns>A flag bits to tell the task scheduler how to operate on this task</returns>
+        static abstract PolicyResolutionFlags Resolve(AccessType order, PolicyResolutionFlags flags);
     }
 }

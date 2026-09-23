@@ -13,7 +13,10 @@ namespace Soe.Collections.Embedded
     #endif
     partial struct EmbeddedDictionary<TKey, TValue>
     {
-        internal struct HashEntry : IHashContainer<TKey>
+        /// <summary>
+        /// An element for this <see cref="EmbeddedDictionary{TKey,TValue}"/>
+        /// </summary>
+        public struct HashEntry : IHashContainer<TKey>
         {
             private readonly TKey key;
             /// <summary>
@@ -61,6 +64,12 @@ namespace Soe.Collections.Embedded
                 this.key = key;
                 this.Value = value!;
                 this.hash = hash;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator KeyValuePair<TKey, TValue>(in HashEntry hashEntry)
+            {
+                return new KeyValuePair<TKey, TValue>(hashEntry.Key, hashEntry.Value);
             }
         }
     }

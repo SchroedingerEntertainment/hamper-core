@@ -13,9 +13,24 @@ namespace Soe.Composable
     #endif
     static class MemoryAllocator
     {
+        /// <summary>
+        /// The default page size in bytes assumed
+        /// </summary>
         public const int PageSize = 4096;
+        
+        /// <summary>
+        /// The size of a single block in a page in bytes
+        /// </summary>
         public const int BlockSize = PageSize >> 6;
+        
+        /// <summary>
+        /// A bitmask to determine the index of an entity within a block
+        /// </summary>
         public const int BlockShift = 3;
+        
+        /// <summary>
+        /// A bitmask to determine the block index of an entity within a page
+        /// </summary>
         public const int BlockMask = (BlockSize >> BlockShift) - 1;
     }
 }

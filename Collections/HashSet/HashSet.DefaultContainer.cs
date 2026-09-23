@@ -40,6 +40,12 @@ namespace Soe.Collections.HashSet
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get { return (hash != 0 && key != null); }
             }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator T(in DefaultContainer<T> container)
+            {
+                return container.Key;
+            }
         }
     }
 }

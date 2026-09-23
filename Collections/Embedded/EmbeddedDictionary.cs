@@ -1,16 +1,13 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Soe.Collections.HashSet;
 
 namespace Soe.Collections.Embedded
 {
     /// <summary>
-    /// 
+    /// Represents a collection of keys and values
     /// </summary>
     /// <remarks>Robin Hood hashing is an open addressing scheme that reduces variance in probe lengths by moving elements with
     /// shorter probe distances away to make room for elements that are farther from their ideal hash position</remarks>
@@ -19,12 +16,12 @@ namespace Soe.Collections.Embedded
     #else
     internal
     #endif
-    partial struct EmbeddedDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+    partial struct EmbeddedDictionary<TKey, TValue> : IIterable<EmbeddedDictionary<TKey, TValue>.HashEntry, EmbeddedDictionary<TKey, TValue>.IteratorStrategy>, IReadOnlyIterable<EmbeddedDictionary<TKey, TValue>.HashEntry, EmbeddedDictionary<TKey, TValue>.ReadOnlyIteratorStrategy>, ISequence<EmbeddedDictionary<TKey, TValue>.HashEntry>
     {
         private HashSet<TKey, HashEntry> hashSet;
         
         /// <summary>
-        /// Gets the maximum number of elements that can be stored
+        /// Gets the total numbers of elements the internal data structure can hold without resizing
         /// </summary>
         public int Capacity
         {
@@ -33,25 +30,18 @@ namespace Soe.Collections.Embedded
         }
         
         /// <summary>
-        /// Gets the current number of elements stored
+        /// Gets the number of key/value pairs contained in the container
         /// </summary>
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return hashSet.Count; }
         }
-
-        /// <inheritdoc/>
-        public bool IsReadOnly
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return false; }
-        }
-
+        
         /// <summary>
-        /// 
+        /// Gets or sets the value associated with the specified key
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="key">The key of the value to get or set</param>
         public ref TValue this[in TKey key]
         {
             get
@@ -64,46 +54,7 @@ namespace Soe.Collections.Embedded
                 else throw new ArgumentOutOfRangeException();
             }
         }
-
-        /// <inheritdoc/>
-        TValue IDictionary<TKey, TValue>.this[TKey key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return this[key]; }
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set { this[key] = value; }
-        }
         
-        /// <inheritdoc/>
-        TValue IReadOnlyDictionary<TKey, TValue>.this[TKey key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return this[key]; }
-        }
-        
-        /// <inheritdoc/>
-        public ICollection<TKey> Keys
-        {
-            get { throw new NotImplementedException(); }
-        }
-        /// <inheritdoc/>
-        public ICollection<TValue> Values
-        {
-            get { throw new NotImplementedException(); }
-        }
-        /// <inheritdoc/>
-        IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return Keys; }
-        }
-        /// <inheritdoc/>
-        IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return Values; }
-        }
-                
         /// <summary>
         /// Initializes this container to the provided capacity
         /// </summary>
@@ -144,6 +95,17 @@ namespace Soe.Collections.Embedded
 
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<HashEntry> AsSpan()
+        {
+            return hashSet.AsSpan();
+        }
+        
+        /// <summary>
+        /// Adds the specified key and value to the container
+        /// </summary>
+        /// <param name="key">The key of the element to add</param>
+        /// <param name="value">The value of the element to add</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(TKey key, TValue value)
         {
             int hash = key!.GetHashCode();
@@ -153,21 +115,30 @@ namespace Soe.Collections.Embedded
             }
             else throw new ArgumentException();
         }
-        /// <inheritdoc/>
+        /// <summary>
+        /// Adds the specified key and value to the container
+        /// </summary>
+        /// <param name="item">The <see cref="KeyValuePair{TKey,TValue}"/> of the element to add</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(KeyValuePair<TKey, TValue> item)
         {
             Add(item.Key, item.Value);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Removes all keys and values from the container
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
             hashSet.Clear();
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Determines whether the container contains a specific element
+        /// </summary>
+        /// <param name="item">The <see cref="KeyValuePair{TKey,TValue}"/> of the element to find</param>
+        /// <returns>True if the element was found in the container, false otherwise</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
@@ -178,12 +149,12 @@ namespace Soe.Collections.Embedded
             }
             else return false;
         }
-
+        
         /// <summary>
-        /// 
+        /// Determines whether the container contains the specified key
         /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
+        /// <param name="key">The key to locate in the container</param>
+        /// <returns>True if the container contains an element with the specified key, false otherwise</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ContainsKey(TKey key)
         {
@@ -195,23 +166,11 @@ namespace Soe.Collections.Embedded
             else return false;
         }
 
-        /// <inheritdoc/>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-        {
-            if (array.Length - arrayIndex >= hashSet.Count)
-            {
-                HashEntry[] items = hashSet.Items!;
-                for (int i = 0, length = items.Length; i < length; i++)
-                {
-                    if (items[i].IsValid)
-                        array[arrayIndex++] = new KeyValuePair<TKey, TValue>(items[i].Key, items[i].Value);
-                }
-            }
-            else throw new ArgumentException();
-        }
-
-        /// <inheritdoc/>
+        /// <summary>
+        /// Removes the value with the specified key from the container
+        /// </summary>
+        /// <param name="key">The key of the element to remove</param>
+        /// <returns>True if the element is successfully found and removed, false otherwise</returns>
         public bool Remove(TKey key)
         {
             if (hashSet.Find(key, key!.GetHashCode(), out _, out _, out Ref<HashEntry> result))
@@ -221,8 +180,11 @@ namespace Soe.Collections.Embedded
             }
             else return false;
         }
-
-        /// <inheritdoc/>
+        /// <summary>
+        /// Removes the first occurrence of a specific element from the container
+        /// </summary>
+        /// <param name="item">The <see cref="KeyValuePair{TKey,TValue}"/> of the element to remove</param>
+        /// <returns>True if the object was successfully removed from the container, false otherwise</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
@@ -241,11 +203,13 @@ namespace Soe.Collections.Embedded
         }
 
         /// <summary>
-        /// 
+        /// Gets the value associated with the specified key
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="key">The key of the value to get</param>
+        /// <param name="value">When this method returns, contains the value associated with the specified key,
+        /// if the key is found; otherwise, the default value for the type of the value parameter. This
+        /// parameter is passed uninitialized</param>
+        /// <returns>True if the container contains an element with the specified key, false otherwise</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(TKey key, out TValue value)
         {
@@ -262,17 +226,21 @@ namespace Soe.Collections.Embedded
             }
         }
         
+        #region IIterable Members
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        public Iterator<HashEntry, IteratorStrategy> GetEnumerator()
         {
-            return new Enumerator(hashSet.Items, hashSet.Count);
+            return new Iterator<HashEntry, IteratorStrategy>(AsSpan());
         }
+        #endregion
+        #region IReadOnlyIterable Members
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        IEnumerator IEnumerable.GetEnumerator()
+        ReadOnlyIterator<HashEntry, ReadOnlyIteratorStrategy> IReadOnlyIterable<HashEntry, ReadOnlyIteratorStrategy>.GetEnumerator()
         {
-            return GetEnumerator();
+            return new ReadOnlyIterator<HashEntry, ReadOnlyIteratorStrategy>(AsSpan());
         }
+        #endregion
     }
 }

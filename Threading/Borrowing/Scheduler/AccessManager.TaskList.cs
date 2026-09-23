@@ -19,7 +19,7 @@ namespace Soe.Threading
         /// </summary>
         struct TaskList : IHashContainer<object>
         {
-            private SmallArray<TaskNode?, SmallArray4<TaskNode?>> tasks;
+            private SmallArray<TaskNode?, SmallArray8<TaskNode?>> tasks;
             private ConcurrentBuffer<TaskNode> buffer;
             
             private readonly UInt32 uniqueId;
@@ -83,71 +83,57 @@ namespace Soe.Threading
             /// <typeparam name="T">A reference type</typeparam>
             /// <typeparam name="Policy">The desired access policy</typeparam>
             /// <returns>True if the node has other tasks to wait on, false otherwise</returns>
-            public bool Append<T, Policy>(TaskNode task)
+            public void Append<T, Policy>(TaskNode task)
                 where T : class
                 where Policy : struct, IAccessPolicy
             {
-                int index = buffer.Enqueue(ref tasks, task);
                 
-                SpinWait wait = new SpinWait();
-                int i = -1;
-                
-            Retry:
-                if (i >= 0)
-                {
-                    // Reached from an uninitialized task
-                    wait.SpinOnce();
-                }
+            Head:
                 using (ScopedDisposable.Acquire<ConcurrentBuffer<TaskNode>, ConcurrentBuffer<TaskNode>.SharedOperation>(ref buffer))
                 {
-                    int moduloMask = tasks.Length - 1;
-                    if (i < 0)
+                    if (!buffer.TryEnqueue(ref tasks, task, out UInt32 index))
                     {
-                        i = ((index - 1) & moduloMask);
+                        goto Grow;
                     }
+                    else index--;
+                    
+                    SpinWait wait = new SpinWait(); 
+                    PolicyResolutionFlags flags = PolicyResolutionFlags.None;
                     
                     // Iterate from the current emplacement index to the tail of the buffer to find potential parents
-                    for (int beforeTail = ((buffer.Tail - 1) & moduloMask); i != beforeTail; i = ((i - 1) & moduloMask))
+                    for (UInt32 moduloMask = (UInt32)(tasks.Length - 1), reserved = buffer.Tail - 1; index - reserved > 0; index--)
                     {
-                        if (tasks[i]?.State < TaskNodeState.Initialized)
+                        TaskNode? t;
+                        do
                         {
-                            // Wait until potential parent is fully initialized to prevent AB problems
-                            goto Retry;
-                        }
-                        AccessType order = tasks[i]?.GetAccess(uniqueId) ?? AccessType.Reserved;
-                        #if DEBUG
-                        if (order >= AccessType.Reserved)
+                            // The task may be already populated but not initialized, spin until it is initialized
+                            t = tasks[(int)(index & moduloMask)];
+                        } 
+                        while (t == null);
+                        while (t!.IsPending)
                         {
-                            throw new ArgumentOutOfRangeException(typeof(T).Name);                            
+                            wait.SpinOnce();
                         }
-                        #endif
-                        if (Policy.IsConflicting(order))
-                        { 
-                            // A task conflicts with the desired access policy, add this as child
-                            
-                            tasks[i]!.AppendChild(task);
-                            for (i = ((i - 1) & moduloMask); i != beforeTail; i = ((i - 1) & moduloMask)) 
-                            {
-                                // Test if there are other tasks with the same conflict, this needs to wait
-                                // on all of those tasks to complete first
-                                
-                                AccessType nextOrder = tasks[i]?.GetAccess(uniqueId) ?? AccessType.Reserved;
-                                #if DEBUG
-                                if (nextOrder >= AccessType.Reserved)
-                                {
-                                    throw new ArgumentOutOfRangeException(typeof(T).Name);                            
-                                }
-                                #endif
-                                if (order == nextOrder)
-                                {
-                                    tasks[i]!.AppendChild(task);
-                                }
-                                else break;
-                            }
-                            return true;
+                        
+                        PolicyResolutionFlags current = Policy.Resolve(t.GetAccess(uniqueId), flags);
+                        if (current.FlagSet(PolicyResolutionFlags.Wait))
+                        {
+                            t!.AppendChild(task);
                         }
+                        if (current.HasFlag(PolicyResolutionFlags.Barrier))
+                        {
+                            break;
+                        }
+                        else flags = current;
                     }
-                    return false;
+                    return;
+                }
+                
+            Grow:
+                using (ScopedDisposable.Acquire<ConcurrentBuffer<TaskNode>, ConcurrentBuffer<TaskNode>.ExclusiveOperation>(ref buffer))
+                {
+                    buffer.Grow(ref tasks);
+                    goto Head;
                 }
             }
 
@@ -157,15 +143,16 @@ namespace Soe.Threading
             /// <param name="task">The corresponding task instance to remove</param>
             /// <exception cref="IndexOutOfRangeException">Thrown if the task was not found in the access graph</exception>
             public void Remove(TaskNode task)
-            {
+            { 
                 using (ScopedDisposable.Acquire<ConcurrentBuffer<TaskNode>, ConcurrentBuffer<TaskNode>.ExclusiveOperation>(ref buffer))
                 {
-                    int index = tasks.IndexOf(task);
-                    if (index >= 0)
+                    if (buffer.IndexOf(ref tasks, task, out UInt32 index))
                     {
-                        int moduloMask = tasks.Length - 1;
-                        
-                        (tasks[index], tasks[buffer.Tail & moduloMask]) = (tasks[buffer.Tail & moduloMask], tasks[index]);
+                        // Move item to the front of the buffer in order to keep the task order in the buffer
+                        for (UInt32 moduloMask = (UInt32)(tasks.Length - 1), reserved = buffer.Tail - 1, i = index - 1; i - reserved > 0; i--, index--)
+                        {
+                            (tasks[(int)(i & moduloMask)], tasks[(int)(index & moduloMask)]) = (tasks[(int)(index & moduloMask)], tasks[(int)(i & moduloMask)]);
+                        }
                         buffer.TryDequeue(ref tasks, out _);
                     }
                     else throw new IndexOutOfRangeException();

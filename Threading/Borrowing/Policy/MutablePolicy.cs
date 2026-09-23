@@ -25,9 +25,18 @@ namespace Soe.Threading
         
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsConflicting(AccessType order)
+        public static PolicyResolutionFlags Resolve(AccessType order, PolicyResolutionFlags flags)
         {
-            return true;
+            switch (order)
+            {
+                default:
+                case AccessType.Immutable: return PolicyResolutionFlags.Wait;
+                case AccessType.Mutable: if (flags.FlagSet(PolicyResolutionFlags.Wait))
+                    {
+                        return PolicyResolutionFlags.Barrier;
+                    }
+                    else return (PolicyResolutionFlags.Wait | PolicyResolutionFlags.Barrier);
+            }
         }
     }
 }

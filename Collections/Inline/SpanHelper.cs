@@ -17,7 +17,6 @@ namespace Soe.Collections.Inline
         /// <returns>The index of the element in this <seealso cref="Span{T}"/>, or -1 otherwise</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int IndexOf<T>(Span<T> span, in T item)
-            
             where T : class?
         {
             for (int length = span.Length, i = 0; i < length; i++)

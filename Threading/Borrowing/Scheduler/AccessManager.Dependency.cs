@@ -48,7 +48,7 @@ namespace Soe.Threading
             /// <typeparam name="Policy">The desired access policy</typeparam>
             /// <returns>True if the node has other tasks to wait on, false otherwise</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static bool Append<Policy>(object instance, TaskNode node)
+            public static void Append<Policy>(object instance, TaskNode node)
                 where Policy : struct, IAccessPolicy
             {
                 int hash = RuntimeHelpers.GetHashCode(instance);
@@ -56,7 +56,8 @@ namespace Soe.Threading
                 {  
                     if(tasks.Find(instance, hash, out _, out _, out Ref<TaskList> result))  
                     {  
-                        return result.Value.Append<T, Policy>(node);
+                        result.Value.Append<T, Policy>(node);
+                        return;
                     }
                 }
                 

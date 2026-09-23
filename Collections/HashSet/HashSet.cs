@@ -1,7 +1,6 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System.Collections;
 using System.Runtime.CompilerServices;
 
 namespace Soe.Collections.HashSet
@@ -37,20 +36,11 @@ namespace Soe.Collections.HashSet
     #else
     internal
     #endif
-    partial struct HashSet<T, Container>(IEqualityComparer<T> comparer, float loadFactor = HashSet.DefaultLoadFactor) : ISequence<Container>
+    partial struct HashSet<T, Container>(IEqualityComparer<T> comparer, float loadFactor = HashSet.DefaultLoadFactor) : IIterable<Container, HashSet<T, Container>.IteratorStrategy>, ISequence<Container>
         where Container : struct, IHashContainer<T>
     {
         private int moduloMask = 0;
-        
         private Container[]? items;
-        /// <summary>
-        /// Gets the items managed by this container
-        /// </summary>
-        public Container[]? Items
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return items; }
-        }
         
         /// <summary>
         /// Gets the maximum number of elements that can be stored
@@ -86,7 +76,7 @@ namespace Soe.Collections.HashSet
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<Container> AsSpan()
         {
-            return items.AsSpan();
+            return new Span<Container>(items ?? Array.Empty<Container>());
         }
         
         /// <summary>
@@ -178,14 +168,6 @@ namespace Soe.Collections.HashSet
                             if (element.IsValid)
                             {
                                 Swap(ref items[index], ref element);
-                                
-                                #if DEBUG
-                                if(result < 0)
-                                {
-                                    throw new IndexOutOfRangeException();
-                                }
-                                else
-                                #endif
                                 return result;
                             }
                             else return index;
@@ -335,6 +317,13 @@ namespace Soe.Collections.HashSet
                 }
             }
             version++;
+        }
+
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Iterator<Container, IteratorStrategy> GetEnumerator()
+        {
+            return new Iterator<Container, IteratorStrategy>(items);
         }
     }
 }

@@ -13,7 +13,11 @@ namespace Soe.Threading
     #endif
     interface IAccessHandle
     {
-
+        /// <summary>
+        /// Gets the desired access type for the given object instance
+        /// </summary>
+        /// <param name="uniqueId">The unique object id for the requested instance</param>
+        /// <returns>The desired access type for the given object instance if present, Empty otherwise</returns>
         public AccessType GetAccess(UInt32 uniqueId);
     }
 }

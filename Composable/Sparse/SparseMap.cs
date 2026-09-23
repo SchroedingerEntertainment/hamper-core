@@ -53,6 +53,8 @@ namespace Soe.Composable
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return version; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            protected set { version = value; }
         }
         
         /// <summary>

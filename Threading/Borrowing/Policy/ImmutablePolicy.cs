@@ -22,12 +22,16 @@ namespace Soe.Threading
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return AccessType.Immutable; }
         }
-        
+
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsConflicting(AccessType order)
+        public static PolicyResolutionFlags Resolve(AccessType order, PolicyResolutionFlags flags)
         {
-            return (order < AccessType.Immutable);
+            if (order < AccessType.Immutable)
+            {
+                return (PolicyResolutionFlags.Wait | PolicyResolutionFlags.Barrier);
+            }
+            else return PolicyResolutionFlags.None;
         }
     }
 }

@@ -18,6 +18,9 @@ namespace Soe.Composable
     #endif
     readonly partial struct MemoryHandle : IEquatable<MemoryHandle>
     {
+        /// <summary>
+        /// Represents a memory handle marked for deletion
+        /// </summary>
         public static readonly MemoryHandle Reserved = new MemoryHandle(UInt16.MaxValue, 0, 0);
         
         [FieldOffset(0)]

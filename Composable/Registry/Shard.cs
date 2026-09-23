@@ -6,6 +6,9 @@ using Soe.Collections.HashSet;
 
 namespace Soe.Composable
 {
+    /// <summary>
+    /// Represents an isolated managing instance of the identity and component registry
+    /// </summary>
     #if EXPORT_HAMPER_CORE_COMPOSITION
     public
     #else
@@ -17,7 +20,9 @@ namespace Soe.Composable
         private HashSet<Type, ComponentContainer> components;
         
         private readonly Entities entities;
-
+        /// <summary>
+        /// Gets the managing instance of this <see cref="Shard"/>'s composable object identity registry
+        /// </summary>
         public Entities Entities
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -25,13 +30,19 @@ namespace Soe.Composable
         }
         
         private readonly int id;
-
+        /// <summary>
+        /// Gets the unique identifier of this <see cref="Shard"/>
+        /// </summary>
         public int Id
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return id; }
         }
         
+        /// <summary>
+        /// Initializes this shard with the provided memory allocator
+        /// </summary>
+        /// <param name="allocator">The memory allocator underlying registries will request data blocks from</param>
         public Shard(IMemoryAllocator allocator)
         {
             this.id = GetNextId(this);
@@ -41,6 +52,7 @@ namespace Soe.Composable
             this.entities = new Entities(this);
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             Span<ComponentContainer> registry = components.AsSpan();
@@ -59,6 +71,13 @@ namespace Soe.Composable
             allocator.Dispose();
         }
         
+        /// <summary>
+        /// Populates the component pool of a pure data structure of type <typeparamref name="T"/> defining
+        /// specific properties of an entity
+        /// </summary>
+        /// <typeparam name="T">The pure data structure defining specific properties</typeparam>
+        /// <returns>The initialized component pool for the given type <typeparamref name="T"/></returns>
+        /// <exception cref="TypeAccessException">Thrown if the registry was unable to create or receive the designated component pool</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Component<T> RegisterComponent<T>()
             where T : struct
@@ -78,6 +97,12 @@ namespace Soe.Composable
             else throw new TypeAccessException();
         }
 
+        /// <summary>
+        /// Tries to receive the instance of a component pool for the provided pure data structure of type <typeparamref name="T"/>
+        /// </summary>
+        /// <param name="component">The component pool belonging to the given type <typeparamref name="T"/></param>
+        /// <typeparam name="T">The pure data structure defining specific properties</typeparam>
+        /// <returns>True if the registry defines a component pool for <typeparamref name="T"/>, false otherwise</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetComponent<T>(out Component<T>? component)
             where T : struct

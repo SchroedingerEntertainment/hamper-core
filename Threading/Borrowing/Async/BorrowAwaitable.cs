@@ -5,16 +5,16 @@ using System.Runtime.CompilerServices;
 
 namespace Soe.Threading
 {
-    /*/// <summary>
+    /// <summary>
     /// Helper struct to make the scheduler operation awaitable
     /// </summary>
     /// <param name="instance">An object instance to request access to</param>
     /// <typeparam name="T">A reference type</typeparam>
     /// <typeparam name="Policy">The desired access policy</typeparam>
+    [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
     #if EXPORT_HAMPER_CORE_THREADING
     public
     #else
-    [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal
     #endif
     readonly struct BorrowAwaitable<T, Policy>(T instance)
@@ -30,8 +30,8 @@ namespace Soe.Threading
         {
             return new BorrowAwaiter(AccessManager.BorrowAsync<T, Policy>(instance));
         }
-    }*/
-    
+    }
+
     /// <summary>
     /// Helper struct to make the scheduler operation awaitable
     /// </summary>
@@ -60,11 +60,11 @@ namespace Soe.Threading
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public BorrowAwaiter GetAwaiter()
         {
-            return new BorrowAwaiter(AccessManager.BorrowAsync<T1, Policy1, T2, Policy2>(i1,  i2));
+            return new BorrowAwaiter(AccessManager.BorrowAsync<T1, Policy1, T2, Policy2>(i1, i2));
         }
     }
-    
-    /*/// <summary>
+
+    /// <summary>
     /// Helper struct to make the scheduler operation awaitable
     /// </summary>
     /// <param name="i1">An object instance to request access to</param>
@@ -100,7 +100,7 @@ namespace Soe.Threading
             return new BorrowAwaiter(AccessManager.BorrowAsync<T1, Policy1, T2, Policy2, T3, Policy3>(i1, i2, i3));
         }
     }
-    
+
     /// <summary>
     /// Helper struct to make the scheduler operation awaitable
     /// </summary>
@@ -142,7 +142,7 @@ namespace Soe.Threading
             return new BorrowAwaiter(AccessManager.BorrowAsync<T1, Policy1, T2, Policy2, T3, Policy3, T4, Policy4>(i1, i2, i3, i4));
         }
     }
-    
+
     /// <summary>
     /// Helper struct to make the scheduler operation awaitable
     /// </summary>
@@ -189,7 +189,7 @@ namespace Soe.Threading
             return new BorrowAwaiter(AccessManager.BorrowAsync<T1, Policy1, T2, Policy2, T3, Policy3, T4, Policy4, T5, Policy5>(i1, i2, i3, i4, i5));
         }
     }
-    
+
     /// <summary>
     /// Helper struct to make the scheduler operation awaitable
     /// </summary>
@@ -241,7 +241,7 @@ namespace Soe.Threading
             return new BorrowAwaiter(AccessManager.BorrowAsync<T1, Policy1, T2, Policy2, T3, Policy3, T4, Policy4, T5, Policy5, T6, Policy6>(i1, i2, i3, i4, i5, i6));
         }
     }
-    
+
     /// <summary>
     /// Helper struct to make the scheduler operation awaitable
     /// </summary>
@@ -298,7 +298,7 @@ namespace Soe.Threading
             return new BorrowAwaiter(AccessManager.BorrowAsync<T1, Policy1, T2, Policy2, T3, Policy3, T4, Policy4, T5, Policy5, T6, Policy6, T7, Policy7>(i1, i2, i3, i4, i5, i6, i7));
         }
     }
-    
+
     /// <summary>
     /// Helper struct to make the scheduler operation awaitable
     /// </summary>
@@ -359,6 +359,6 @@ namespace Soe.Threading
         {
             return new BorrowAwaiter(AccessManager.BorrowAsync<T1, Policy1, T2, Policy2, T3, Policy3, T4, Policy4, T5, Policy5, T6, Policy6, T7, Policy7, T8, Policy8>(i1, i2, i3, i4, i5, i6, i7, i8));
         }
-        
-    }*/
+
+    }
 }

@@ -51,7 +51,7 @@ namespace Soe.Threading
             return BorrowAsync<T1, Policy1, T2, Policy2>(instances);
         }
 
-        /*/// <summary>
+        /// <summary>
         /// Requests access to the provided object instances and awaits execution to be scheduled
         /// </summary>
         /// <typeparam name="T1">An instance type to get access</typeparam>
@@ -461,7 +461,7 @@ namespace Soe.Threading
         {
             return BorrowAsync<T1, Policy1, T2, Policy2, T3, Policy3, T4, Policy4, T5, Policy5, T6, Policy6, T7, Policy7, T8, Policy8>(instances);
         }
-        */
+        
         // ReSharper restore InvalidXmlDocComment
     }
 }

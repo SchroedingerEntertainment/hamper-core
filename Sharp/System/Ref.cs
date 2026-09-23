@@ -8,7 +8,6 @@ namespace System
     /// <summary>
     /// A reference to a value of type <typeparamref name="T"/>
     /// </summary>
-    [Serializable]
     #if EXPORT_HAMPER_CORE_SHARP
     public
     #else

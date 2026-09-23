@@ -1,24 +1,25 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Soe.Collections.Embedded
 {
+    /// <summary>
+    /// Represents a strongly typed container of objects that can be accessed by index
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the container</typeparam>
     #if EXPORT_HAMPER_CORE_COLLECTIONS_EMBEDDED
     public
     #else
     internal
     #endif
-    partial struct EmbeddedList<T> : IList<T>, IReadOnlyList<T>
+    struct EmbeddedList<T> : IIterable<T, Iterator<T>.DefaultStrategy>, IReadOnlyIterable<T, ReadOnlyIterator<T>.DefaultStrategy>, ISequence<T>
     {
         private T[]? buffer;
 
         /// <summary>
-        /// 
+        /// Gets the total number of elements the internal data structure can hold without resizing
         /// </summary>
         public int Capacity
         {
@@ -28,7 +29,7 @@ namespace Soe.Collections.Embedded
 
         private int count;
         /// <summary>
-        /// 
+        /// Gets the number of elements contained
         /// </summary>
         public int Count
         {
@@ -36,49 +37,26 @@ namespace Soe.Collections.Embedded
             get { return count; }
         }
 
-        /// <inheritdoc/>
-        public bool IsReadOnly
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return false; }
-        }
-
         /// <summary>
-        /// 
+        /// Gets or sets the element at the specified index
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="index">The zero-based index of the element to get or set</param>
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return ref buffer![index]; }
         }
         
-        /// <inheritdoc/>
-        T IList<T>.this[int index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return buffer![index]; }
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set { buffer![index] = value; }
-        }
-        
-        /// <inheritdoc/>
-        T IReadOnlyList<T>.this[int index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return buffer![index]; }
-        }
-
         /// <summary>
-        /// 
+        /// Initializes this container instance to its default value
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EmbeddedList()
         { }
         /// <summary>
-        /// 
+        /// Initializes this container instance by a given default capacity
         /// </summary>
-        /// <param name="capacity"></param>
+        /// <param name="capacity">The number of elements that the container can initially store</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EmbeddedList(int capacity)
         {
@@ -87,13 +65,26 @@ namespace Soe.Collections.Embedded
 
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<T> AsSpan()
+        {
+            return new Span<T>(buffer ?? Array.Empty<T>())
+                .Slice(0, count);
+        }
+        
+        /// <summary>
+        /// Adds an object to the end of the container
+        /// </summary>
+        /// <param name="item">The object to be added to the end of the container</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(T item)
         {
             EnsureCapacity(++count);
             buffer![count - 1] = item;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Removes all elements from the container
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
@@ -104,21 +95,15 @@ namespace Soe.Collections.Embedded
             count = 0;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Determines whether an element is in the container
+        /// </summary>
+        /// <param name="item">The object to locate in the container</param>
+        /// <returns>True if the item was found in the container, false otherwise</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(T item)
         {
             return IndexOf(item) != -1;
-        }
-        
-        /// <inheritdoc/>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(T[] array, int arrayIndex)
-        {
-            if (buffer != null)
-            {
-                Array.Copy(buffer, 0, array, arrayIndex, count);
-            }
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -131,7 +116,11 @@ namespace Soe.Collections.Embedded
             }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the zero-based index of the first occurrence of a value in the container
+        /// </summary>
+        /// <param name="item">The object to locate in the container</param>
+        /// <returns>The zero-based index of the first occurrence of item within the container if found, -1 otherwise</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int IndexOf(T item)
         {
@@ -141,24 +130,39 @@ namespace Soe.Collections.Embedded
             }
             else return -1;
         }
-
-        /// <inheritdoc/>
+        
+        /// <summary>
+        /// Inserts an element into the container at the specified index
+        /// </summary>
+        /// <param name="index">The zero-based index at which the element should be inserted</param>
+        /// <param name="item">The object to insert</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Insert(int index, T item)
         {
-            Add(item);
-            Swap(index, count - 1);
+            EnsureCapacity(count + 1);
+            Array.Copy(buffer!, index, buffer!, index + 1, count - index);
+            buffer![index] = item;
         }
-
-        /// <inheritdoc/>
+        
+        /// <summary>
+        /// Removes the element at the specified index of the container
+        /// </summary>
+        /// <param name="index">The zero-based index of the element to remove</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
-            Swap(index, count - 1);
+            if(index < count - 1)
+            {
+                Swap(index, count - 1);
+            }
             buffer![count--] = default!;
         }
         
-        /// <inheritdoc/>
+        /// <summary>
+        /// Removes the first occurrence of a specific object from the container
+        /// </summary>
+        /// <param name="item">The object to remove from the container</param>
+        /// <returns>True if the element was successfully removed, false otherwise</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(T item)
         {
@@ -176,30 +180,22 @@ namespace Soe.Collections.Embedded
         {
             (buffer![sourceIndex], buffer[destinationIndex]) = (buffer[destinationIndex], buffer[sourceIndex]);
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan()
-        {
-            return new Span<T>(buffer, 0, count);
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan()
-        {
-            return new ReadOnlySpan<T>(buffer, 0, count);
-        }
 
+        #region IIterable Members
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IEnumerator<T> GetEnumerator()
+        public Iterator<T, Iterator<T>.DefaultStrategy> GetEnumerator()
         {
-            return new Enumerator(buffer, count);
+            return new Iterator<T, Iterator<T>.DefaultStrategy>(AsSpan());
         }
+        #endregion
+        #region IReadOnlyIterable Members
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        IEnumerator IEnumerable.GetEnumerator()
+        ReadOnlyIterator<T, ReadOnlyIterator<T>.DefaultStrategy> IReadOnlyIterable<T, ReadOnlyIterator<T>.DefaultStrategy>.GetEnumerator()
         {
-            return GetEnumerator();
+            return new ReadOnlyIterator<T, ReadOnlyIterator<T>.DefaultStrategy>(AsSpan());
         }
+        #endregion
     }
 }

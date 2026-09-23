@@ -24,12 +24,12 @@ namespace Soe.Threading
         /// <summary>
         /// Gets the element index logically pointing to index[0] of the buffer
         /// </summary>
-        public int Tail
+        public UInt32 Tail
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                return (int)Volatile.Read(ref tail);
+                return Volatile.Read(ref tail);
             }
         }
         
@@ -65,13 +65,13 @@ namespace Soe.Threading
         /// <returns>The index at which the element was added into the array</returns>
         /// <remarks>This operation is operation may lead to an additional Grow operation to be performed. The
         /// calling code is responsible to secure other operations using this buffer's policies</remarks>
-        public int Enqueue<Accessor>(ref Accessor array, T value)
+        public UInt32 Enqueue<Accessor>(ref Accessor array, T value)
             where Accessor : IArrayAccessor<T?>
         {
         Head:
             using(ScopedDisposable.Acquire<UInt32, SynchronizationBarrier.SharedOperation>(ref lockVariable))
             {
-                if (TryEnqueue(ref array, value, out int index))
+                if (TryEnqueue(ref array, value, out UInt32 index))
                 {
                     return index;
                 }
@@ -83,9 +83,7 @@ namespace Soe.Threading
                 {
                     // Remove completed in the meantime, insert and return
                     Volatile.Write(ref array[(int)(head % capacityBits)], value);
-                    head++;
-
-                    return (int)(head % capacityBits);
+                    return head++;
                 }
                 else
                 {
@@ -125,6 +123,26 @@ namespace Soe.Threading
         }
 
         /// <summary>
+        /// Searches for the specified element and returns the index of its first occurrence in the array
+        /// </summary>
+        /// <param name="array">The array this buffer instance operates on</param>
+        /// <param name="value">The element to find</param>
+        /// <param name="index">The index at which the element was found</param>
+        /// <returns>True if the element was found in the buffer, false otherwise</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IndexOf<Accessor>(ref Accessor array, T value, out UInt32 index)
+            where Accessor : IArrayAccessor<T?>
+        {
+            int capacityBits = array.Length - 1;
+            for (index = tail; index != head; index++)
+            {
+                if (ReferenceEquals(array[(int)(index & capacityBits)], value))
+                    return true;
+            }
+            return false;
+        }
+        
+        /// <summary>
         /// Tries to enqueue the provided element into the buffer
         /// </summary>
         /// <param name="array">The array this buffer instance operates on</param>
@@ -133,7 +151,7 @@ namespace Soe.Threading
         /// <returns>True if the element was successfully added into the buffer, false otherwise</returns>
         /// <remarks>This operation might be secured using the shared policy. The calling code is responsible to
         /// keep the buffer integrity intact</remarks>
-        public bool TryEnqueue<Accessor>(ref Accessor array, T value, out int index)
+        public bool TryEnqueue<Accessor>(ref Accessor array, T value, out UInt32 index)
             where Accessor : IArrayAccessor<T?>
         {
             int capacityBits = array.Length - 1;
@@ -143,13 +161,13 @@ namespace Soe.Threading
                 if (current - Volatile.Read(ref tail) >= capacityBits)
                 {
                     // List is full
-                    index = -1;
+                    index = 0;
                     return false;
                 }
                 else if (Interlocked.CompareExchange(ref head, current + 1, current) == current)
                 {
                     Volatile.Write(ref array[(int)(current & capacityBits)], value);
-                    index = (int)(current & capacityBits);
+                    index = current;
                     return true;
                 }
             }

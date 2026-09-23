@@ -1,7 +1,7 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System.Diagnostics;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using Soe.Collections.Inline;
 
@@ -15,27 +15,21 @@ namespace Soe.Threading
     static partial class AccessManager
     {
         /// <summary>
-        /// Provides different states of a <see cref="TaskNode"/> instance
-        /// </summary>
-        enum TaskNodeState : int
-        {
-            Created = 0,
-            Initialized = 1,
-            Running = 2,
-            Completed = 3
-        }
-
-        /// <summary>
         /// Represents a single task in a designated access graph
         /// </summary>
         class TaskNode : IAccessHandle
         {
-            SmallArray<TaskNode?, SmallArray4<TaskNode?>> array;
-            ConcurrentBuffer<TaskNode> children;
-
-            private InstanceArray instances;
+            #if DEBUG
+            private static UInt64 globalID;
+            private readonly UInt64 id;
+            #endif
+            
+            private DependencyTreeNode[]? instances;
+            private SmallArray<TaskNode?, SmallArray8<TaskNode?>> array;
+            private ConcurrentBuffer<TaskNode> children;
             
             private int root;
+
             /// <summary>
             /// 
             /// </summary>
@@ -46,135 +40,106 @@ namespace Soe.Threading
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set { root = value; }
             }
-            
-            TaskCompletionSource<IAccessHandle>? signal;
 
-            private int state;
-            /// <summary>
-            /// Gets the current state of this task 
-            /// </summary>
-            public TaskNodeState State
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get { return (TaskNodeState)Volatile.Read(ref state); }
-            }
-
+            private TaskCompletionSource<IAccessHandle>? signal;
+            private UInt16 initializationState;
             private int dependencyCount;
-            /// <summary>
-            /// Gets the amount of tasks this one is currently waiting for
-            /// </summary>
-            public int DependencyCount
+
+            public bool IsPending
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get { return Volatile.Read(ref dependencyCount); }
+                get { return (Volatile.Read(ref initializationState) == 0); }
             }
-
+            
             /// <summary>
             /// Initializes this instance to its default state
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public TaskNode()
             {
-                this.array = default;
+                #if DEBUG
+                this.id = Interlocked.Increment(ref globalID);
+                #endif
+                
+                this.instances = null;
                 this.children = default;
-                this.instances = default;
+                this.array = default;
             }
-
-            // ReSharper disable ParameterHidesMember
-            
-            /// <summary>
-            /// Prepares this task to be appended into an access graph
-            /// </summary>
-            /// <returns>A memory object to set the object instances this task accesses</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ref InstanceArray Initialize()
-            {
-                this.state = (int)TaskNodeState.Created;
-                this.signal = new TaskCompletionSource<IAccessHandle>();
-
-                return ref instances;
-            }
-            
-            // ReSharper restore ParameterHidesMember
             
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Task<IAccessHandle>(TaskNode node)
             {
                 return node.signal!.Task;
             }
-            
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            void AddParent()
-            {
-                Interlocked.Increment(ref dependencyCount);
-            }
 
-            /// <summary>
-            /// Appends the provided <see cref="TaskNode"/> to this tasks children and increases its dependency count
-            /// </summary>
-            /// <param name="child">A task instance to append</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void AppendChild(TaskNode child)
             {
                 children.Enqueue(ref array, child);
-                child.AddParent();
+                Interlocked.Increment(ref child.dependencyCount);
             }
             
+            /// <summary>
+            /// Prepares this task to be appended into an access graph
+            /// </summary>
+            /// <returns>A memory object to set the object instances this task accesses</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public DependencyTreeNode[] BeginInitialize()
+            {
+                this.dependencyCount = 1;
+                this.initializationState = 0;
+                this.signal = new TaskCompletionSource<IAccessHandle>(TaskCreationOptions.RunContinuationsAsynchronously);
+                this.instances = ArrayPool<DependencyTreeNode>.Shared.Rent(16);
+                
+                return instances;
+            }
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <returns></returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool EndInitialize()
+            {
+                Volatile.Write(ref initializationState, 1);
+                return (Interlocked.Decrement(ref dependencyCount) == 0);
+            }
+
             /// <summary>
             /// Finishes this tasks execution. Decreases the dependency counter for all children currently attached and
             /// releases any used resource
             /// </summary>
-            /// <param name="dispatchableNodes">An array to be filled with tasks ready to run next</param>
-            /// <returns>The amount of tasks added to the provided array</returns>
-            public int Finish<Accessor>(ref Accessor dispatchableNodes)
-                where Accessor : IArrayAccessor<TaskNode>
+            public void Finish()
             {
                 // Remove from dependencies
-                int index = DependencyTree.First(ref instances, root);
+                int index = DependencyTree.Begin(instances!, root);
                 do
                 {
-                    instances[index].Delegate(instances[index].Instance, this);
-                    index = DependencyTree.Next(ref instances, index);
+                    instances![index].Delegate(instances[index].Instance, this);
+                    index = DependencyTree.Next(instances, index);
                 }
                 while(index != DependencyTreeNode.Empty);
                 
-                Volatile.Write(ref state, (int)TaskNodeState.Completed);
-                using(ScopedDisposable.Acquire<ConcurrentBuffer<TaskNode>, ConcurrentBuffer<TaskNode>.ExclusiveOperation>(ref children))
+                // Removed this from all dependencies, no need for locking
+                for (int i = 0, count = array.Length; i < count; i++)
                 {
-                    Span<TaskNode> nodes = dispatchableNodes.AsSpan();
-                    int nodeCount = 0;
-                    
-                    for (int i = children.Tail, count = children.Count; count > 0; i++, count--)
-                    {
-                        if (array[i] != null)
-                        {
-                            if (array[i]!.RemoveParent())
-                            {
-                                if (nodes.Length == nodeCount)
-                                {
-                                    dispatchableNodes.Resize(nodeCount * 2);
-                                    nodes = dispatchableNodes.AsSpan();
-                                }
-                                nodes[nodeCount] = array[i]!;
-                                nodeCount++;
-                            }
-                            array[i] = null;
-                        }
+                    if (array[i] != null && Interlocked.Decrement(ref array[i]!.dependencyCount) == 0)
+                    { 
+                        array[i]!.SignalNode();
                     }
-                    children.Reset();
-                    instances = default;
-                    array.Clear();
-                    array.Resize(0);
-                    
-                    return nodeCount;
                 }
+                
+                array.Clear();
+                array.Resize(0);
+                ArrayPool<DependencyTreeNode>.Shared.Return(instances);
+                instances = null;
+                children.Reset();
             }
             
             /// <inheritdoc/>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public AccessType GetAccess(UInt32 uniqueId)
             {
-                if (DependencyTree.Find(ref instances, uniqueId, root, out _, out Ref<DependencyTreeNode> result))
+                if (DependencyTree.Find(instances!, uniqueId, root, out _, out Ref<DependencyTreeNode> result))
                 {
                     // ReSharper disable BitwiseOperatorOnEnumWithoutFlags
                     
@@ -184,36 +149,11 @@ namespace Soe.Threading
                 }
                 else return AccessType.Reserved;
             }
-            
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            bool RemoveParent()
-            {
-                return (Interlocked.Decrement(ref dependencyCount) == 0);
-            }
-            
-            /// <summary>
-            /// Signals this task to be fully initialized. All dependencies have been attached and the task is
-            /// ready to act as parent for other tasks
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void SetInitialized()
-            {
-                if (State < TaskNodeState.Initialized)
-                {
-                    Volatile.Write(ref state, (int)TaskNodeState.Initialized);
-                }
-            }
 
-            /// <summary>
-            /// Signals that the underlying <see cref="System.Threading.Tasks.Task"/> can enter the requested scope
-            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SignalNode()
             {
-                if (signal!.TrySetResult(this))
-                {
-                    Volatile.Write(ref state, (int)TaskNodeState.Running);
-                }
-                else Debugger.Break();
+                signal!.SetResult(this);
             }
         }
     }

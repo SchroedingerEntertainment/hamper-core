@@ -52,6 +52,12 @@ namespace Soe.Composable
             }
         }
 
+        /// <summary>
+        /// Tries to get managing instance with the provided unique id
+        /// </summary>
+        /// <param name="id">The id of a <see cref="Shard"/> to receive</param>
+        /// <param name="shard">The instance of the <see cref="Shard"/> with the provided unique id</param>
+        /// <returns>True if a <see cref="Shard"/> with the provided id exists, false otherwise</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryGetShard(int id, out Shard? shard)
         {
