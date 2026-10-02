@@ -1,7 +1,9 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
+using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Soe.Collections.HashSet
 {
@@ -27,20 +29,25 @@ namespace Soe.Collections.HashSet
     /// <summary>
     /// Stores a set of <typeparamref name="T"/> via Robin Hood hash algorithm
     /// </summary>
+    /// <typeparam name="T">The type of elements in the container</typeparam>
+    /// <typeparam name="ArrayBuffer">The array accessor to use</typeparam>
+    /// <typeparam name="Container">The container type managing elements</typeparam>
     /// <param name="comparer">An <seealso cref="IEqualityComparer{T}"/> to handle element comparison</param>
     /// <remarks>Robin Hood hashing is an open addressing scheme that reduces variance in probe lengths by moving elements with
     /// shorter probe distances away to make room for elements that are farther from their ideal hash position</remarks>
+    [StructLayout(LayoutKind.Auto)]
     [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
     #if EXPORT_HAMPER_CORE_COLLECTIONS_HASHSET
     public
     #else
     internal
     #endif
-    partial struct HashSet<T, Container>(IEqualityComparer<T> comparer, float loadFactor = HashSet.DefaultLoadFactor) : IIterable<Container, HashSet<T, Container>.IteratorStrategy>, ISequence<Container>
+    partial struct HashSet<T, ArrayBuffer, Container>(IEqualityComparer<T> comparer, float loadFactor = HashSet.DefaultLoadFactor) : IIterable<Container, HashSet<T, ArrayBuffer, Container>.IteratorStrategy>, ISequence<Container>
+        where ArrayBuffer : struct, IArrayAccessor<Container>
         where Container : struct, IHashContainer<T>
     {
         private int moduloMask = 0;
-        private Container[]? items;
+        private ArrayBuffer items;
         
         /// <summary>
         /// Gets the maximum number of elements that can be stored
@@ -48,7 +55,7 @@ namespace Soe.Collections.HashSet
         public int Capacity
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return items?.Length ?? 0; }
+            get { return items.Length; }
         }
         
         private int count;
@@ -76,7 +83,7 @@ namespace Soe.Collections.HashSet
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<Container> AsSpan()
         {
-            return new Span<Container>(items ?? Array.Empty<Container>());
+            return items.AsSpan();
         }
         
         /// <summary>
@@ -85,10 +92,7 @@ namespace Soe.Collections.HashSet
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            if (Capacity > 0)
-            {
-                Array.Clear(items!);
-            }
+            items.Clear();
             count = 0;
         }
         
@@ -106,14 +110,14 @@ namespace Soe.Collections.HashSet
         Head:
             if (version == currentVersion || !Find(in key, hash, out index, out distance, out Ref<Container> result))
             {
-                if (items == null || count >= items.Length * loadFactor)
+                if (count >= items.Length * loadFactor)
                 {
                     Grow();
                     goto Head;
                 }
 
                 version++;
-                return ref items![Emplace(index, distance)];
+                return ref items[Emplace(index, distance)];
             }
             else return ref result.Value;
         }
@@ -130,7 +134,7 @@ namespace Soe.Collections.HashSet
         }
         int Emplace(int index, int distance)
         {
-            if (!items![index].IsValid)
+            if (!items[index].IsValid)
             {
                 // Insert as slot is already empty
                 
@@ -209,9 +213,9 @@ namespace Soe.Collections.HashSet
             {
                 distance = 0;
 
-                for (int length = items?.Length ?? 0; distance < length; distance++, index = (index + 1) & moduloMask)
+                for (int length = items.Length; distance < length; distance++, index = (index + 1) & moduloMask)
                 {
-                    if (items![index].IsValid)
+                    if (items[index].IsValid)
                     {
                         if (hash == items[index].Hash && comparer.Equals(key, items[index].Key))
                         {
@@ -233,7 +237,7 @@ namespace Soe.Collections.HashSet
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         int GetDistance(int index)
         {
-            int tmp = (items![index].Hash & moduloMask);
+            int tmp = (items[index].Hash & moduloMask);
             if (tmp > index)
             {
                 return (index + (items.Length - tmp));
@@ -244,7 +248,7 @@ namespace Soe.Collections.HashSet
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Grow()
         {
-            Reserve(items == null ? 4 : items.Length + 1);
+            Reserve(items.Length < 4 ? 4 : items.Length + 1);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -262,7 +266,7 @@ namespace Soe.Collections.HashSet
         /// <returns>True if the element was successfully removed, false otherwise</returns>
         public bool Remove(in T key, int hash, int index)
         {
-            for (int i = 0, next = ((index + 1) & moduloMask); i < items!.Length; i++, index = ((index + 1) & moduloMask), next = ((next + 1) & moduloMask))
+            for (int i = 0, next = ((index + 1) & moduloMask); i < items.Length; i++, index = ((index + 1) & moduloMask), next = ((next + 1) & moduloMask))
             {
                 if (!items[next].IsValid || GetDistance(next) == 0)
                 {
@@ -302,28 +306,39 @@ namespace Soe.Collections.HashSet
             moduloMask = (capacity - 1);
             count = 0;
 
-            Container[]? tmp = items;
-            items = new Container[capacity];
-            if (tmp != null)
+            int length = items.Length;
+            Container[] tmp = ArrayPool<Container>.Shared.Rent(length);
+            try
             {
-                // Reinsert existing elements
-                for (int i = 0; i < tmp.Length; i++)
+                items.AsSpan().CopyTo(tmp);
+                items.Clear();
+                items.Resize(capacity);
+                if (length > 0)
                 {
-                    if (tmp[i].IsValid)
+                    // Reinsert existing elements
+                    for (int i = 0; i < length; i++)
                     {
-                        int index = Emplace(tmp[i].Hash & moduloMask, 0);
-                        items[index] = tmp[i];
+                        if (tmp[i].IsValid)
+                        {
+                            int index = Emplace(tmp[i].Hash & moduloMask, 0);
+                            items[index] = tmp[i];
+                        }
                     }
                 }
+
+                version++;
             }
-            version++;
+            finally
+            {
+                ArrayPool<Container>.Shared.Return(tmp);
+            }
         }
 
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Iterator<Container, IteratorStrategy> GetEnumerator()
         {
-            return new Iterator<Container, IteratorStrategy>(items);
+            return new Iterator<Container, IteratorStrategy>(items.AsSpan());
         }
     }
 }

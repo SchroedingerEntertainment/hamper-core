@@ -6,14 +6,13 @@ namespace System
     /// <summary>
     /// Represents a collection of elements of type <typeparamref name="T"/>, accessible by their index
     /// </summary>
-    /// <typeparam name="T">A reference type to be stored</typeparam>
+    /// <typeparam name="T">The type to be stored</typeparam>
     #if EXPORT_HAMPER_CORE_SHARP
     public
     #else
     internal
     #endif
     interface IArrayAccessor<T> : ISequence<T>
-        where T : class?
     {
         /// <summary>
         /// Gets the length of the underlying collection

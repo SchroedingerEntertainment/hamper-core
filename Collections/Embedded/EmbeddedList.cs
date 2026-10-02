@@ -9,14 +9,16 @@ namespace Soe.Collections.Embedded
     /// Represents a strongly typed container of objects that can be accessed by index
     /// </summary>
     /// <typeparam name="T">The type of elements in the container</typeparam>
+    /// <typeparam name="ArrayBuffer">The array accessor to use</typeparam>
     #if EXPORT_HAMPER_CORE_COLLECTIONS_EMBEDDED
     public
     #else
     internal
     #endif
-    struct EmbeddedList<T> : IIterable<T, Iterator<T>.DefaultStrategy>, IReadOnlyIterable<T, ReadOnlyIterator<T>.DefaultStrategy>, ISequence<T>
+    struct EmbeddedList<T, ArrayBuffer> : IIterable<T, Iterator<T>.DefaultStrategy>, IReadOnlyIterable<T, ReadOnlyIterator<T>.DefaultStrategy>, ISequence<T>
+        where ArrayBuffer : struct, IArrayAccessor<T>
     {
-        private T[]? buffer;
+        private ArrayBuffer buffer;
 
         /// <summary>
         /// Gets the total number of elements the internal data structure can hold without resizing
@@ -24,7 +26,7 @@ namespace Soe.Collections.Embedded
         public int Capacity
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return buffer?.Length ?? 0; }
+            get { return buffer.Length; }
         }
 
         private int count;
@@ -44,21 +46,24 @@ namespace Soe.Collections.Embedded
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return ref buffer![index]; }
+            get { return ref buffer[index]; }
         }
-        
+
         /// <summary>
         /// Initializes this container instance to its default value
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EmbeddedList()
-        { }
+        {
+            buffer = new ArrayBuffer();
+        }
         /// <summary>
         /// Initializes this container instance by a given default capacity
         /// </summary>
         /// <param name="capacity">The number of elements that the container can initially store</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EmbeddedList(int capacity)
+            : this()
         {
             EnsureCapacity(capacity);
         }
@@ -67,7 +72,7 @@ namespace Soe.Collections.Embedded
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan()
         {
-            return new Span<T>(buffer ?? Array.Empty<T>())
+            return buffer.AsSpan()
                 .Slice(0, count);
         }
         
@@ -79,7 +84,7 @@ namespace Soe.Collections.Embedded
         public void Add(T item)
         {
             EnsureCapacity(++count);
-            buffer![count - 1] = item;
+            buffer[count - 1] = item;
         }
 
         /// <summary>
@@ -88,10 +93,7 @@ namespace Soe.Collections.Embedded
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            if (buffer != null)
-            {
-                Array.Clear(buffer);
-            }
+            buffer.Clear();
             count = 0;
         }
 
@@ -112,7 +114,7 @@ namespace Soe.Collections.Embedded
             capacity = Math.Max(4, capacity);
             if (Capacity < capacity)
             {
-                Array.Resize(ref buffer, capacity.NextPowerOfTwo());
+                buffer.Resize(capacity.NextPowerOfTwo());
             }
         }
 
@@ -124,11 +126,7 @@ namespace Soe.Collections.Embedded
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int IndexOf(T item)
         {
-            if (buffer != null)
-            {
-                return Array.IndexOf(buffer, item);
-            }
-            else return -1;
+            return buffer.IndexOf(item);
         }
         
         /// <summary>
@@ -140,8 +138,11 @@ namespace Soe.Collections.Embedded
         public void Insert(int index, T item)
         {
             EnsureCapacity(count + 1);
-            Array.Copy(buffer!, index, buffer!, index + 1, count - index);
-            buffer![index] = item;
+            Span<T> span = buffer.AsSpan();
+            span.Slice(index, count - index)
+                .CopyTo(span.Slice(index + 1));
+            
+            buffer[index] = item;
         }
         
         /// <summary>
@@ -155,7 +156,7 @@ namespace Soe.Collections.Embedded
             {
                 Swap(index, count - 1);
             }
-            buffer![count--] = default!;
+            buffer[--count] = default!;
         }
         
         /// <summary>
@@ -178,7 +179,7 @@ namespace Soe.Collections.Embedded
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Swap(int sourceIndex, int destinationIndex)
         {
-            (buffer![sourceIndex], buffer[destinationIndex]) = (buffer[destinationIndex], buffer[sourceIndex]);
+            (buffer[sourceIndex], buffer[destinationIndex]) = (buffer[destinationIndex], buffer[sourceIndex]);
         }
 
         #region IIterable Members

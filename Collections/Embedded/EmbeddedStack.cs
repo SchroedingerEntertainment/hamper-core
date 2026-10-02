@@ -9,14 +9,16 @@ namespace Soe.Collections.Embedded
     /// Represents a simple last-in-first-out collection of objects
     /// </summary>
     /// <typeparam name="T">The type of elements in the container</typeparam>
+    /// <typeparam name="ArrayBuffer">The array accessor to use</typeparam>
     #if EXPORT_HAMPER_CORE_COLLECTIONS_EMBEDDED
     public
     #else
     internal
     #endif
-    struct EmbeddedStack<T> : IIterable<T, Iterator<T>.DefaultStrategy>, IReadOnlyIterable<T, ReadOnlyIterator<T>.DefaultStrategy>, ISequence<T>
+    struct EmbeddedStack<T, ArrayBuffer> : IIterable<T, Iterator<T>.DefaultStrategy>, IReadOnlyIterable<T, ReadOnlyIterator<T>.DefaultStrategy>, ISequence<T>
+        where ArrayBuffer : struct, IArrayAccessor<T>
     {
-        private T[]? buffer;
+        private ArrayBuffer buffer;
 
         /// <summary>
         /// Gets the total number of elements the internal data structure can hold without resizing
@@ -24,7 +26,7 @@ namespace Soe.Collections.Embedded
         public int Capacity
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return buffer?.Length ?? 0; }
+            get { return buffer.Length; }
         }
 
         private int count;
@@ -36,19 +38,22 @@ namespace Soe.Collections.Embedded
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return count; }
         }
-        
+
         /// <summary>
         /// Initializes this container instance to its default value
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EmbeddedStack()
-        { }
+        {
+            buffer = new ArrayBuffer();
+        }
         /// <summary>
         /// Initializes this container instance by a given default capacity
         /// </summary>
         /// <param name="capacity">The number of elements that the container can initially store</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EmbeddedStack(int capacity)
+            : this()
         {
             EnsureCapacity(capacity);
         }
@@ -57,7 +62,7 @@ namespace Soe.Collections.Embedded
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan()
         {
-            return new Span<T>(buffer ?? Array.Empty<T>())
+            return buffer.AsSpan()
                 .Slice(0, count);
         }
         
@@ -67,10 +72,7 @@ namespace Soe.Collections.Embedded
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            if (buffer != null)
-            {
-                Array.Clear(buffer);
-            }
+            buffer.Clear();
             count = 0;
         }
 
@@ -82,11 +84,7 @@ namespace Soe.Collections.Embedded
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(T item)
         {
-            if (buffer != null)
-            {
-                return Array.IndexOf(buffer, item) != -1;
-            }
-            else return false;
+            return buffer.IndexOf(item) != -1;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -95,7 +93,7 @@ namespace Soe.Collections.Embedded
             capacity = Math.Max(4, capacity);
             if (Capacity < capacity)
             {
-                Array.Resize(ref buffer, capacity.NextPowerOfTwo());
+                buffer.Resize(capacity.NextPowerOfTwo());
             }
         }
 
@@ -135,7 +133,7 @@ namespace Soe.Collections.Embedded
         public void Push(T item)
         {
             EnsureCapacity(count + 1);
-            buffer![count++] = item;
+            buffer[count++] = item;
         }
 
         /// <summary>
@@ -149,7 +147,7 @@ namespace Soe.Collections.Embedded
         {
             if (count > 0)
             {
-                result = buffer![count - 1];
+                result = buffer[count - 1];
                 return true;
             }
             else
@@ -170,7 +168,7 @@ namespace Soe.Collections.Embedded
         {
             if (count > 0)
             {
-                result = buffer![--count];
+                result = buffer[--count];
                 buffer[count] = default!;
 
                 return true;

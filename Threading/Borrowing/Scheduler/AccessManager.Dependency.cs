@@ -24,7 +24,7 @@ namespace Soe.Threading
         {
             private static UInt32 instanceUniqueId;
             
-            private static HashSet<object, TaskList> tasks;
+            private static HashSet<object, HeapArray<TaskList>, TaskList> tasks;
             private static UInt32 lockVariable;
             private static UInt32 uniqueId;
             
@@ -36,7 +36,7 @@ namespace Soe.Threading
                 {
                     throw new ArgumentOutOfRangeException(nameof(uniqueId));
                 }
-                tasks = new HashSet<object, TaskList>(EqualityComparer<object>.Default);
+                tasks = new HashSet<object, HeapArray<TaskList>, TaskList>(EqualityComparer<object>.Default);
                 lockVariable = 0;
             }
             

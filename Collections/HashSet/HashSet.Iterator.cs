@@ -2,6 +2,7 @@
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Soe.Collections.HashSet
 {
@@ -10,7 +11,7 @@ namespace Soe.Collections.HashSet
     #else
     internal
     #endif
-    partial struct HashSet<T, Container>
+    partial struct HashSet<T, ArrayBuffer, Container>
     {
         /// <summary>
         /// Iterates through this container from the first to the last valid element

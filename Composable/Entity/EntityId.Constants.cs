@@ -21,6 +21,11 @@ namespace Soe.Composable
         public static readonly EntityId Reserved = new EntityId(0, 0, 0, EntityFlags.Reserved);
 
         /// <summary>
+        /// Represents a flagged object
+        /// </summary>
+        public static readonly EntityId FlagBits = new EntityId(0, 0, 0, ~EntityFlags.Reserved);
+        
+        /// <summary>
         /// Represents an invalid object identity
         /// </summary>
         public static readonly EntityId Invalid = Null | Reserved;

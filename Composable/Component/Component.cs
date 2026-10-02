@@ -29,8 +29,8 @@ namespace Soe.Composable
             get { return shard.Id; }
         }
         
-        private EmbeddedList<EntityId> entities;
-        private EmbeddedList<T> components;
+        private EmbeddedList<EntityId, HeapArray<EntityId>> entities;
+        private EmbeddedList<T, HeapArray<T>> components;
         private IComponentGroup? group;
         
         /// <inheritdoc/>
@@ -146,7 +146,7 @@ namespace Soe.Composable
 
                 // Look the entity up in the sparse map
                 EntityId entityPtr = allocator.Access(handle.Value, entity.Index & MemoryAllocator.BlockMask);
-                if (((~EntityId.Null & entity) ^ entityPtr) < EntityId.Null)
+                if (Compare(entity, entityPtr))
                 {
                     // Entity exists and is alive
                     index = entityPtr.Index;
@@ -187,6 +187,17 @@ namespace Soe.Composable
             Version++;
             count = 0;
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool Compare(EntityId entity, EntityId entityPtr)
+        {
+            // Sanitize entities
+            entity &= ~EntityId.FlagBits;
+            entityPtr &= ~EntityId.FlagBits;
+            
+            // Check if entity matches version, shard and reserved bit
+            return (((~EntityId.Null & entity) ^ entityPtr) < EntityId.Null);
+        }
 
         /// <summary>
         /// Searches for the specified entity and returns the index of its component data in the pool
@@ -204,7 +215,7 @@ namespace Soe.Composable
                 
                 // Look the entity up in the sparse map
                 EntityId entityPtr = allocator.Access(handle.Value, entity.Index & MemoryAllocator.BlockMask);
-                if (((~EntityId.Null & entity) ^ entityPtr) < EntityId.Null)
+                if (Compare(entity, entityPtr))
                 {
                     // Entity exists and is alive
                     return entityPtr.Index;
@@ -231,7 +242,7 @@ namespace Soe.Composable
                 
                 // Check if entity is alive
                 EntityId entityPtr = allocator.Access(handle.Value, entity.Index & MemoryAllocator.BlockMask);
-                if (((~EntityId.Null & entity) ^ entityPtr) < EntityId.Null)
+                if (Compare(entity, entityPtr) && !entityPtr.FlagSet(EntityFlags.Locked))
                 {
                     // Mark component as removed by adding the reserved flag
                     allocator.Access(handle.Value, entity.Index & MemoryAllocator.BlockMask, new EntityId(entityPtr.Index, entityPtr.Version, entityPtr.ShardId, EntityFlags.Reserved));
@@ -287,7 +298,7 @@ namespace Soe.Composable
             }
             else return false;
         }
-
+        
         /// <summary>
         /// Reorders the component pool by switching the provided indices with each other
         /// </summary>
@@ -349,7 +360,7 @@ namespace Soe.Composable
                 
                 // Check if the entity is alive
                 EntityId entityPtr = allocator.Access(handle.Value, entity.Index & MemoryAllocator.BlockMask);
-                if (((~EntityId.Null & entity) ^ entityPtr) < EntityId.Null)
+                if (Compare(entity, entityPtr))
                 {
                     allocator.Access(handle.Value, entity.Index & MemoryAllocator.BlockMask, new EntityId(entityPtr.Index, entityPtr.Version, entityPtr.ShardId, flags & ~EntityFlags.Reserved));
                     return ((flags & ~EntityFlags.Reserved) == flags);
@@ -375,7 +386,7 @@ namespace Soe.Composable
                 
                 // Check if the entity is alive
                 EntityId entityPtr = allocator.Access(handle.Value, entity.Index & MemoryAllocator.BlockMask);
-                if (((~EntityId.Null & entity) ^ entityPtr) < EntityId.Null)
+                if (Compare(entity, entityPtr))
                 {
                     result = new Ref<T>(ref components[entityPtr.Index]);
                     return true;

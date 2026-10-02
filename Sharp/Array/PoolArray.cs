@@ -1,20 +1,24 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
+using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace System
 {
     /// <summary>
-    /// Represents a collection of elements of type <typeparamref name="T"/> on the heap, accessible by their index
+    /// Represents a collection of elements of type <typeparamref name="T"/> from a memory pool, accessible by their index
     /// </summary>
     /// <typeparam name="T">The type to be stored</typeparam>
+    /// <remarks>The array managed has no defined size. The size is guaranteed to be at least the requested size but
+    /// the array might be larger. The calling code is responsible to ensure correct length is used</remarks>
     #if EXPORT_HAMPER_CORE_SHARP
     public
     #else
     internal
     #endif
-    struct HeapArray<T> : IArrayAccessor<T>
+    struct PoolArray<T> : IArrayAccessor<T>
     {
         private T[]? array;
 
@@ -36,13 +40,13 @@ namespace System
         /// Initializes to an empty array
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public HeapArray()
+        public PoolArray()
         {
             this.array = Array.Empty<T>();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T[](HeapArray<T> heapArray)
+        public static implicit operator T[](PoolArray<T> heapArray)
         {
             return heapArray.array ?? Array.Empty<T>();
         }
@@ -76,10 +80,17 @@ namespace System
         }
 
         /// <inheritdoc/>
+        /// <remarks>The size of the underlying array is at least the desired size</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Resize(int size)
         {
-            Array.Resize(ref array, size);
+            T[]? tmp = array;
+            array = ArrayPool<T>.Shared.Rent(size);
+            if(tmp?.Length > 0)
+            {
+                Array.Copy(tmp, 0, array, 0, Math.Min(tmp.Length, array.Length));
+                ArrayPool<T>.Shared.Return(tmp!);
+            }
             return true;
         }
     }

@@ -21,7 +21,7 @@ namespace Soe.Composable
         private EntityId freeList;
         private int maxID;
 
-        private EmbeddedList<EntityId> entities;
+        private EmbeddedList<EntityId, HeapArray<EntityId>> entities;
         /// <summary>
         /// Gets the maximum number of active object identities
         /// </summary>
@@ -88,6 +88,17 @@ namespace Soe.Composable
             this.maxID = 0;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool Compare(EntityId entity, EntityId entityPtr)
+        {
+            // Sanitize entities
+            entity &= ~EntityId.FlagBits;
+            entityPtr &= ~EntityId.FlagBits;
+            
+            // Check if entity matches version, shard and reserved bit
+            return (((~EntityId.Null & entity) ^ entityPtr) < EntityId.Null);
+        }
+        
         /// <summary>
         /// Creates a new composable object identity
         /// </summary>
@@ -143,7 +154,7 @@ namespace Soe.Composable
             allocator.Access(handle.Value, entity.Index & MemoryAllocator.BlockMask, new EntityId(index, entity.Version, entity.ShardId, entity.Flags));
             return entity;
         }
-
+        
         /// <summary>
         /// Disposes a composable object instance and invalidates it
         /// </summary>
@@ -162,7 +173,7 @@ namespace Soe.Composable
                 
                 // Check if entity is alive
                 EntityId entityPtr = allocator.Access(handle.Value, entity.Index & MemoryAllocator.BlockMask);
-                if (((~EntityId.Null & entity) ^ entityPtr) < EntityId.Null)
+                if (Compare(entity, entityPtr))
                 {
                     allocator.Access(handle.Value, entity.Index & MemoryAllocator.BlockMask, freeList);
                     freeList = new EntityId(entity.Index, entity.Version, entity.ShardId, EntityFlags.Reserved);
@@ -211,7 +222,7 @@ namespace Soe.Composable
                 
                 // Check if entity is alive
                 EntityId entityPtr = allocator.Access(handle.Value, entity.Index & MemoryAllocator.BlockMask);
-                if (((~EntityId.Null & entity) ^ entityPtr) < EntityId.Null)
+                if (Compare(entity, entityPtr))
                 {
                     result = entities[entityPtr.Index];
                     return true;

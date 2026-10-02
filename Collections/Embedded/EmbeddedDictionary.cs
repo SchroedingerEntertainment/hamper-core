@@ -2,6 +2,7 @@
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Soe.Collections.HashSet;
 
 namespace Soe.Collections.Embedded
@@ -9,16 +10,21 @@ namespace Soe.Collections.Embedded
     /// <summary>
     /// Represents a collection of keys and values
     /// </summary>
+    /// <typeparam name="TKey">The type of object identifying elements in the container</typeparam>
+    /// <typeparam name="TValue">The type of elements in the container</typeparam>
+    /// <typeparam name="ArrayBuffer">The array accessor to use</typeparam>
     /// <remarks>Robin Hood hashing is an open addressing scheme that reduces variance in probe lengths by moving elements with
     /// shorter probe distances away to make room for elements that are farther from their ideal hash position</remarks>
+    [StructLayout(LayoutKind.Auto)]
     #if EXPORT_HAMPER_CORE_COLLECTIONS_EMBEDDED
     public
     #else
     internal
     #endif
-    partial struct EmbeddedDictionary<TKey, TValue> : IIterable<EmbeddedDictionary<TKey, TValue>.HashEntry, EmbeddedDictionary<TKey, TValue>.IteratorStrategy>, IReadOnlyIterable<EmbeddedDictionary<TKey, TValue>.HashEntry, EmbeddedDictionary<TKey, TValue>.ReadOnlyIteratorStrategy>, ISequence<EmbeddedDictionary<TKey, TValue>.HashEntry>
+    partial struct EmbeddedDictionary<TKey, TValue, ArrayBuffer> : IIterable<EmbeddedDictionary<TKey, TValue, ArrayBuffer>.HashEntry, EmbeddedDictionary<TKey, TValue, ArrayBuffer>.IteratorStrategy>, IReadOnlyIterable<EmbeddedDictionary<TKey, TValue, ArrayBuffer>.HashEntry, EmbeddedDictionary<TKey, TValue, ArrayBuffer>.ReadOnlyIteratorStrategy>, ISequence<EmbeddedDictionary<TKey, TValue, ArrayBuffer>.HashEntry>
+        where ArrayBuffer : struct, IArrayAccessor<EmbeddedDictionary<TKey, TValue, ArrayBuffer>.HashEntry>
     {
-        private HashSet<TKey, HashEntry> hashSet;
+        private HashSet<TKey, ArrayBuffer, HashEntry> hashSet;
         
         /// <summary>
         /// Gets the total numbers of elements the internal data structure can hold without resizing
@@ -83,7 +89,7 @@ namespace Soe.Collections.Embedded
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EmbeddedDictionary(EqualityComparer<TKey> comparer)
         {
-            this.hashSet = new HashSet<TKey, HashEntry>(comparer);
+            this.hashSet = new HashSet<TKey, ArrayBuffer, HashEntry>(comparer);
         }
         /// <summary>
         /// Initializes an empty instance of this container

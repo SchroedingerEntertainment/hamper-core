@@ -17,7 +17,7 @@ namespace Soe.Composable
     partial class Shard : IMemoryAllocator
     {
         private readonly IMemoryAllocator allocator;
-        private HashSet<Type, ComponentContainer> components;
+        private HashSet<Type, HeapArray<ComponentContainer>, ComponentContainer> components;
         
         private readonly Entities entities;
         /// <summary>
@@ -48,7 +48,7 @@ namespace Soe.Composable
             this.id = GetNextId(this);
             
             this.allocator = allocator;
-            this.components = new HashSet<Type, ComponentContainer>(EqualityComparer<Type>.Default);
+            this.components = new HashSet<Type, HeapArray<ComponentContainer>, ComponentContainer>(EqualityComparer<Type>.Default);
             this.entities = new Entities(this);
         }
 

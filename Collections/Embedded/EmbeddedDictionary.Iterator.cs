@@ -10,7 +10,7 @@ namespace Soe.Collections.Embedded
     #else
     internal
     #endif
-    partial struct EmbeddedDictionary<TKey, TValue>
+    partial struct EmbeddedDictionary<TKey, TValue, ArrayBuffer>
     {
         /// <summary>
         /// Iterates through this container from the first to the last valid element
