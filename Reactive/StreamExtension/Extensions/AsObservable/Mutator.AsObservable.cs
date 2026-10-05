@@ -29,6 +29,7 @@ namespace Soe.Reactive
         /// <typeparam name="SubscriptionStrategy">An object managing how subscribers are handled</typeparam>
         /// <returns>The materialized data processing unit attached to the source</returns>
         /// <exception cref="ChannelConnectionFailedException">An exception thrown when connecting to the data source failed</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Observable<TIn, TOut, MutatorT, DispatchingStrategy, SubscriptionStrategy> AsObservable<TIn, TOut, MutatorT, DispatchingStrategy, SubscriptionStrategy>(this Mutator<TIn, TOut, IObservable<TIn>, MutatorT> mutator, ObservableStrategy<TOut, DispatchingStrategy, SubscriptionStrategy> strategy, out IDisposable disposable)
             where MutatorT : struct, IProjectionMutator<TIn, TOut>
             where DispatchingStrategy : struct, IDispatchingStrategy<TOut>
@@ -128,6 +129,7 @@ namespace Soe.Reactive
         /// <typeparam name="SubscriptionStrategy">An object managing how subscribers are handled</typeparam>
         /// <returns>The materialized data processing unit attached to the source</returns>
         /// <exception cref="ChannelConnectionFailedException">An exception thrown when connecting to the data source failed</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Observable<TIn, TKey, TValue, MutatorT, DispatchingStrategy, SubscriptionStrategy> AsObservable<TIn, TKey, TValue, MutatorT, DispatchingStrategy, SubscriptionStrategy>(this Mutator<TIn, TKey, TValue, IObservable<TIn>, MutatorT> mutator, ObservableStrategy<TKey, TValue, DispatchingStrategy, SubscriptionStrategy> strategy, out IDisposable disposable)
             where MutatorT : struct, IProjectionMutator<TIn, TKey, TValue>
             where DispatchingStrategy : struct, IDispatchingStrategy<TValue>
@@ -228,6 +230,7 @@ namespace Soe.Reactive
         /// <typeparam name="SubscriptionStrategy">An object managing how subscribers are handled</typeparam>
         /// <returns>The materialized data processing unit attached to the source</returns>
         /// <exception cref="ChannelConnectionFailedException">An exception thrown when connecting to the data source failed</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Observable<T, MutatorT, DispatchingStrategy, SubscriptionStrategy> AsObservable<T, MutatorT, DispatchingStrategy, SubscriptionStrategy>(this Mutator<T, IObservable<T>, MutatorT> mutator, ObservableStrategy<T, DispatchingStrategy, SubscriptionStrategy> strategy, out IDisposable disposable)
             where MutatorT : struct, IGatingMutator<T>
             where DispatchingStrategy : struct, IDispatchingStrategy<T>
@@ -327,6 +330,7 @@ namespace Soe.Reactive
         /// <returns>The materialized data processing unit attached to the source</returns>
         /// <typeparam name="TKey">The object that provides information about the target subscriptions</typeparam>
         /// <exception cref="ChannelConnectionFailedException">An exception thrown when connecting to the data source failed</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Observable<TIn, TOut, MutatorT, DispatchingStrategy, SubscriptionStrategy> AsObservable<TKey, TIn, TOut, MutatorT, DispatchingStrategy, SubscriptionStrategy>(this Mutator<TIn, TOut, IObservable<TKey, TIn>, MutatorT> mutator, in TKey subscriptionKey, ObservableStrategy<TOut, DispatchingStrategy, SubscriptionStrategy> strategy, out IDisposable disposable)
             where MutatorT : struct, IProjectionMutator<TIn, TOut>
             where DispatchingStrategy : struct, IDispatchingStrategy<TOut>
@@ -434,6 +438,7 @@ namespace Soe.Reactive
         /// <returns>The materialized data processing unit attached to the source</returns>
         /// <typeparam name="TObservableKey">The object that provides information about the target subscriptions</typeparam>
         /// <exception cref="ChannelConnectionFailedException">An exception thrown when connecting to the data source failed</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Observable<TIn, TKey, TValue, MutatorT, DispatchingStrategy, SubscriptionStrategy> AsObservable<TObservableKey, TIn, TKey, TValue, MutatorT, DispatchingStrategy, SubscriptionStrategy>(this Mutator<TIn, TKey, TValue, IObservable<TObservableKey, TIn>, MutatorT> mutator, in TObservableKey subscriptionKey, ObservableStrategy<TKey, TValue, DispatchingStrategy, SubscriptionStrategy> strategy, out IDisposable disposable)
             where MutatorT : struct, IProjectionMutator<TIn, TKey, TValue>
             where DispatchingStrategy : struct, IDispatchingStrategy<TValue>
@@ -542,6 +547,7 @@ namespace Soe.Reactive
         /// <returns>The materialized data processing unit attached to the source</returns>
         /// <typeparam name="TKey">The object that provides information about the target subscriptions</typeparam>
         /// <exception cref="ChannelConnectionFailedException">An exception thrown when connecting to the data source failed</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Observable<T, MutatorT, DispatchingStrategy, SubscriptionStrategy> AsObservable<TKey, T, MutatorT, DispatchingStrategy, SubscriptionStrategy>(this Mutator<T, IObservable<TKey, T>, MutatorT> mutator, in TKey subscriptionKey, ObservableStrategy<T, DispatchingStrategy, SubscriptionStrategy> strategy, out IDisposable disposable)
             where MutatorT : struct, IGatingMutator<T>
             where DispatchingStrategy : struct, IDispatchingStrategy<T>
