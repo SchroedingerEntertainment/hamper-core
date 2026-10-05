@@ -1,0 +1,9 @@
+{
+  "type": "forwarder",
+  "name": "hamper.core.reactive",
+  "packages": [
+    "hamper.core.reactive.stream",
+    "hamper.core.reactive.extension",
+    "hamper.core.reactive.async"
+  ]
+} 

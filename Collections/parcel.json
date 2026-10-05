@@ -1,0 +1,7 @@
+{
+  "type": "forwarder",
+  "name": "hamper.core.collections",
+  "packages": [
+    "hamper.core.collections.inline"
+  ]
+} 
