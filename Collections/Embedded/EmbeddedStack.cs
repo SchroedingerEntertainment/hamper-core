@@ -15,7 +15,7 @@ namespace Soe.Collections.Embedded
     #else
     internal
     #endif
-    struct EmbeddedStack<T, ArrayBuffer> : IIterable<T, Iterator<T>.DefaultStrategy>, IReadOnlyIterable<T, ReadOnlyIterator<T>.DefaultStrategy>, ISequence<T>
+    struct EmbeddedStack<T, ArrayBuffer> : IIterable<T, Iterator<T>.DefaultStrategy>, IReadOnlyIterable<T, ReadOnlyIterator<T>.DefaultStrategy>, ISequence<T>, IDisposable
         where ArrayBuffer : struct, IArrayAccessor<T>
     {
         private ArrayBuffer buffer;
@@ -75,7 +75,7 @@ namespace Soe.Collections.Embedded
             buffer.Clear();
             count = 0;
         }
-
+        
         /// <summary>
         /// Determines whether an element is in the container
         /// </summary>
@@ -85,6 +85,14 @@ namespace Soe.Collections.Embedded
         public bool Contains(T item)
         {
             return buffer.IndexOf(item) != -1;
+        }
+        
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            Clear();
+            buffer.Dispose();
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

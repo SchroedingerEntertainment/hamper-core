@@ -11,7 +11,7 @@ namespace Soe.Composable
     #else
     internal
     #endif
-    interface IComponent
+    interface IComponent : IDisposable
     {
         /// <summary>
         /// Gets the maximum number of components that can be stored

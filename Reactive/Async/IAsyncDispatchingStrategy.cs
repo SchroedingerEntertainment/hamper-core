@@ -1,7 +1,6 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System;
 using System.Threading.Tasks;
 
 namespace Soe.Reactive
@@ -15,7 +14,7 @@ namespace Soe.Reactive
     #else
     internal
     #endif
-    interface IAsyncDispatchingStrategy<T>
+    interface IAsyncDispatchingStrategy<T> : IDisposable
     {
         /// <summary>
         /// Provides the underlying observers with notification data asynchronously
@@ -23,21 +22,21 @@ namespace Soe.Reactive
         /// <param name="observers">The instance list of observers to provide notification data to</param>
         /// <param name="value">Provides the observer with new data</param>
         /// <returns>A task that represents the completion of the notification</returns>
-        Task OnNextAsync(Span<IAsyncObserver<T>?> observers, in T value);
-        
+        Task OnNextAsync(ReadOnlySpan<IAsyncObserver<T>?> observers, in T value);
+
         /// <summary>
         /// Notifies the underlying observers that the provider has experienced an error condition asynchronously
         /// </summary>
         /// <param name="observers">The instance list of observers to provide error data to</param>
         /// <param name="error">An object that provides additional information about the error</param>
         /// <returns>A task that represents the completion of the notification</returns>
-        Task OnErrorAsync(Span<IAsyncObserver<T>?> observers, in Exception error);
-        
+        Task OnErrorAsync(ReadOnlySpan<IAsyncObserver<T>?> observers, in Exception error);
+
         /// <summary>
         /// Notifies the underlying observers that the provider has finished sending push-based notifications asynchronously
         /// </summary>
         /// <param name="observers">The instance list of observers to notify</param>
         /// <returns>A task that represents the completion of the notification</returns>
-        Task OnCompletedAsync(Span<IAsyncObserver<T>?> observers);
+        Task OnCompletedAsync(ReadOnlySpan<IAsyncObserver<T>?> observers);
     }
 }

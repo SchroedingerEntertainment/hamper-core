@@ -15,7 +15,7 @@ namespace Soe.Collections.Embedded
     #else
     internal
     #endif
-    struct EmbeddedList<T, ArrayBuffer> : IIterable<T, Iterator<T>.DefaultStrategy>, IReadOnlyIterable<T, ReadOnlyIterator<T>.DefaultStrategy>, ISequence<T>
+    struct EmbeddedList<T, ArrayBuffer> : IIterable<T, Iterator<T>.DefaultStrategy>, IReadOnlyIterable<T, ReadOnlyIterator<T>.DefaultStrategy>, ISequence<T>, IDisposable
         where ArrayBuffer : struct, IArrayAccessor<T>
     {
         private ArrayBuffer buffer;
@@ -108,6 +108,14 @@ namespace Soe.Collections.Embedded
             return IndexOf(item) != -1;
         }
         
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            Clear();
+            buffer.Dispose();
+        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void EnsureCapacity(int capacity)
         {
@@ -157,6 +165,29 @@ namespace Soe.Collections.Embedded
                 Swap(index, count - 1);
             }
             buffer[--count] = default!;
+        }
+
+        /// <summary>
+        /// Removes a range of elements from the container
+        /// </summary>
+        /// <param name="index">The zero-based starting index of the range of elements to remove</param>
+        /// <param name="length">The number of elements to remove</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveRange(int index, int length)
+        {
+            if(length > 0)
+            {
+                Span<T> span = buffer.AsSpan();
+                if(index + length < count)
+                {
+                    span.Slice(index + length, count - length)
+                        .CopyTo(span.Slice(index));
+                }
+                span.Slice(count - length)
+                    .Clear();
+                
+                count -= length;
+            }
         }
         
         /// <summary>

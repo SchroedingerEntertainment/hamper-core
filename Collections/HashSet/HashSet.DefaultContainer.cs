@@ -13,7 +13,7 @@ namespace Soe.Collections.HashSet
     static partial class HashSet
     {
         /// <summary>
-        /// A default element for this <see cref="HashSet{T,Container}"/>
+        /// A default element for this <see cref="HashSet{T}"/>
         /// </summary>
         /// <param name="hash">The hash code of this element</param>
         /// <param name="key">The key of this element</param>

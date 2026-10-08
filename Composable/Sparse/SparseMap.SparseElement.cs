@@ -13,7 +13,7 @@ namespace Soe.Composable
     abstract partial class SparseMap
     {
         /// <summary>
-        /// Represents a container element of the <seealso cref="SparseMap{T}"/>
+        /// Represents a container element of the <see cref="SparseMap"/>
         /// </summary>
         protected struct SparseElement
         {

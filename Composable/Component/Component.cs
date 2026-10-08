@@ -199,6 +199,14 @@ namespace Soe.Composable
             return (((~EntityId.Null & entity) ^ entityPtr) < EntityId.Null);
         }
 
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            entities.Dispose();
+            components.Dispose();
+        }
+
         /// <summary>
         /// Searches for the specified entity and returns the index of its component data in the pool
         /// </summary>

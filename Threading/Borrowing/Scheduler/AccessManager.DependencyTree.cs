@@ -21,7 +21,7 @@ namespace Soe.Threading
         /// <param name="flags">A flag set for the Red-black probing</param>
         [StructLayout(LayoutKind.Explicit)]
         [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
-        struct DependencyTreeNode(UInt32 key, byte parent = DependencyTreeNode.Empty, byte flags = DependencyTreeNode.RedBlackBit)
+        private struct DependencyTreeNode(UInt32 key, byte parent = DependencyTreeNode.Empty, byte flags = DependencyTreeNode.RedBlackBit)
         {
             private const byte RedBlackBit = 0x80;
             /// <summary>
@@ -115,7 +115,7 @@ namespace Soe.Threading
         /// </summary>
         /// <remarks>A red-black tree is a self-balancing binary search tree where every node carries an extra bit of data for
         /// color—either red or black—to ensure operations stay efficient</remarks>
-        struct DependencyTree
+        private struct DependencyTree
         {
             private const int MaxElementCount = 16;
             

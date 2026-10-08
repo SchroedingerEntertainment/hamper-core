@@ -137,7 +137,7 @@ namespace Soe.Threading
                 {
                     if (tasks.Find(instance, hash, out int index, out _, out Ref<TaskList> result) && result.Value.Count == 0)
                     {
-                        return tasks.Remove(instance, hash, index);
+                        return tasks.RemoveAt(index);
                     }
                     else return false;
                 }

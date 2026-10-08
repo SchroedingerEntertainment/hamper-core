@@ -12,7 +12,7 @@ namespace System
     #else
     internal
     #endif
-    interface IArrayAccessor<T> : ISequence<T>
+    interface IArrayAccessor<T> : ISequence<T>, IDisposable
     {
         /// <summary>
         /// Gets the length of the underlying collection

@@ -1,6 +1,7 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
+using System.Drawing;
 using System.Runtime.CompilerServices;
 
 namespace System
@@ -63,6 +64,13 @@ namespace System
                 Array.Clear(array);
             }
         }
+        
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            Resize(0);
+        }
 
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -79,7 +87,11 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Resize(int size)
         {
-            Array.Resize(ref array, size);
+            if(size > 0)
+            {
+                Array.Resize(ref array, size);
+            }
+            else array = Array.Empty<T>();
             return true;
         }
     }

@@ -85,6 +85,64 @@ namespace System
     /// <summary>
     /// Handles iteration over a collection of read-only elements of type <typeparamref name="T"/>
     /// </summary>
+    /// <typeparam name="T">The element type of the collection</typeparam>
+    /// <typeparam name="Parameter">An additional parameter used by the strategy</typeparam>
+    /// <typeparam name="Strategy">A strategy controlling the behavior of the iterator</typeparam>
+    #if EXPORT_HAMPER_CORE_SHARP
+    public
+    #else
+    internal
+    #endif
+    ref struct ReadOnlyIterator<T, Parameter, Strategy>
+        where Parameter : struct
+        where Strategy : struct, IReadOnlyIteratorStrategy<T, Parameter>
+    {
+        private readonly ReadOnlySpan<T> source;
+        private Parameter parameter;
+        private int index;
+        
+        /// <summary>
+        /// Gets the element in the collection at the current position of this iterator
+        /// </summary>
+        public T Current
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return source[index]; }
+        }
+
+        /// <summary>
+        /// Initializes this iterator with the provided source
+        /// </summary>
+        /// <param name="source">The collection this iterator instance handles</param>
+        public ReadOnlyIterator(ReadOnlySpan<T> source)
+        {
+            this.source = source;
+            this.parameter = default;
+            this.index = Strategy.Begin(source, ref parameter);
+        }
+        
+        /// <summary>
+        /// Advances the iterator to the next element of the collection
+        /// </summary>
+        /// <returns>True if the iterator was successfully advanced to the next element, false otherwise</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool MoveNext()
+        {
+            return Strategy.MoveNext(source, ref parameter, ref index);
+        }
+
+        /// <summary>
+        /// Sets the iterator to its initial position
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reset()
+        {
+            index = Strategy.Begin(source, ref parameter);
+        }
+    }
+    /// <summary>
+    /// Handles iteration over a collection of read-only elements of type <typeparamref name="T"/>
+    /// </summary>
     /// <typeparam name="T1">The element type of the collection</typeparam>
     /// <typeparam name="Strategy1">A strategy controlling the behavior of the iterator</typeparam>
     /// <typeparam name="T2">The element type of the collection</typeparam>

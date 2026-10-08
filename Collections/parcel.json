@@ -3,6 +3,8 @@
   "name": "hamper.core.collections",
   "packages": [
     "hamper.core.collections.inline",
-    "hamper.core.collections.hashset"
+    "hamper.core.collections.hashset",
+    "hamper.core.collections.embedded",
+    "hamper.core.collections.pooling"
   ]
 } 

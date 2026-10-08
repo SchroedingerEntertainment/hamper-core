@@ -6,12 +6,17 @@ using Soe.Collections.HashSet;
 
 namespace Soe.Collections.Embedded
 {
+    /// <summary>
+    /// Represents a collection of keys and values
+    /// </summary>
+    /// <typeparam name="TKey">The type of object identifying elements in the container</typeparam>
+    /// <typeparam name="TValue">The type of elements in the container</typeparam>
     #if EXPORT_HAMPER_CORE_COLLECTIONS_EMBEDDED
     public
     #else
     internal
     #endif
-    partial struct EmbeddedDictionary<TKey, TValue, ArrayBuffer>
+    static partial class EmbeddedDictionary<TKey, TValue>
     {
         /// <summary>
         /// An element for this <see cref="EmbeddedDictionary{TKey,TValue}"/>

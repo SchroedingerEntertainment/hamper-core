@@ -38,7 +38,7 @@ namespace System
         /// 
         /// Pattern must be all lower case in order to allow MatchingFlags.IgnoreCase and MatchingFlags.Invariant
         /// to work</remarks>
-        public static bool IsMatch(this string s, string pattern, MatchingFlags flag)
+        public static bool IsMatch(this ReadOnlySpan<char> s, string pattern, MatchingFlags flag)
         {
             for (int stringIndex = 0, stringPointer = 0, stringLength = s.Length, patternIndex = 0, patternPointer = 0, patternLength = pattern.Length; patternIndex < patternLength || stringIndex < stringLength;)
             {
@@ -108,6 +108,22 @@ namespace System
             }
             return true;
         }
+
+        /// <summary>
+        /// Indicates whether the specified expression pattern matches this input string
+        /// </summary>
+        /// <param name="pattern">A simple expression pattern to match</param>
+        /// <param name="flag">An enumeration value that controls expression pattern matching</param>
+        /// <returns>True if the expression pattern matches, false otherwise</returns>
+        /// <remarks>The expression pattern allows for wildcard characters ? (single match) and * (matches a range). Those
+        /// characters need to be escaped in order to match as a single character instead.
+        /// 
+        /// Pattern must be all lower case in order to allow MatchingFlags.IgnoreCase and MatchingFlags.Invariant
+        /// to work</remarks>
+        public static bool IsMatch(this string s, string pattern, MatchingFlags flag)
+        {
+            return IsMatch(s.AsSpan(), pattern, flag);
+        }
         /// <summary>
         /// Indicates whether the specified expression pattern matches this input string
         /// </summary>
@@ -118,7 +134,7 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsMatch(this string s, string pattern)
         {
-            return  s.IsMatch(pattern, MatchingFlags.Default);
+            return  IsMatch(s.AsSpan(), pattern, MatchingFlags.Default);
         }
     }
 }
