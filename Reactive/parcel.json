@@ -4,6 +4,7 @@
   "packages": [
     "hamper.core.reactive.stream",
     "hamper.core.reactive.extension",
-    "hamper.core.reactive.async"
+    "hamper.core.reactive.async",
+    "hamper.core.reactive.asyncextension"
   ]
 } 

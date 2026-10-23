@@ -15,21 +15,5 @@ namespace Soe.Reactive
     internal
     #endif
     class ChannelLimitReachedException : Exception
-    {
-        private static readonly ChannelLimitReachedException instance;
-        
-        /// <summary>
-        /// An instance of the exception thrown when a channel is unable to accept more connections
-        /// </summary>
-        public static ChannelLimitReachedException Instance
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return instance; }
-        }
-
-        static ChannelLimitReachedException()
-        {
-            instance = new ChannelLimitReachedException();
-        }
-    }
+    { }
 }

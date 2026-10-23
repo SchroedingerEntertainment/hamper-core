@@ -1,6 +1,7 @@
 {
   "type": "package",
-  "name": "hamper.core.reactive.async-extension",
+  "name": "hamper.core.reactive.asyncextension",
+  "alias": "AsyncExtension",
   "version": "1.0.0",
   "license": "AGPL-3.0-only",
   "dependencies": {

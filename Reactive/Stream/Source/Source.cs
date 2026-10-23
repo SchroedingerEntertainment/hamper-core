@@ -1,7 +1,6 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System;
 using System.Runtime.CompilerServices;
 
 namespace Soe.Reactive
@@ -25,7 +24,7 @@ namespace Soe.Reactive
         {
             /// <inheritdoc/>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Invoke(Source<T, DispatchingStrategy, SubscriptionStrategy> target, IObserver<T> instance)
+            public static void Invoke(Source<T, DispatchingStrategy, SubscriptionStrategy> target, IObserver<T> instance)
             {
                 target.strategy.Subscriptions.Remove(instance);
             }

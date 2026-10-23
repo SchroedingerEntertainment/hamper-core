@@ -8,29 +8,28 @@ namespace System
     /// <summary>
     /// Represents a collection of elements of type <typeparamref name="T"/> on the heap, accessible by their index
     /// </summary>
-    /// <typeparam name="T">A reference type to be stored</typeparam>
+    /// <typeparam name="T">The type to be stored</typeparam>
     #if EXPORT_HAMPER_CORE_SHARP
     public
     #else
     internal
     #endif
     struct HeapArray<T> : IArrayAccessor<T>
-        where T : class?
     {
-        private T[] array;
+        private T[]? array;
 
         /// <inheritdoc/>
         public int Length
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return array.Length; }
+            get { return array?.Length ?? 0; }
         }
 
         /// <inheritdoc/>
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return ref array[index]; }
+            get { return ref array![index]; }
         }
 
         /// <summary>
@@ -39,34 +38,41 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public HeapArray()
         {
-            array = Array.Empty<T>();
+            this.array = Array.Empty<T>();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T[](HeapArray<T> heapArray)
         {
-            return heapArray.array;
+            return heapArray.array ?? Array.Empty<T>();
         }
         
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan()
         {
-            return array.AsSpan();
+            return new Span<T>(array ?? Array.Empty<T>());
         }
 
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            Array.Clear(array);
+            if(array != null)
+            {
+                Array.Clear(array);
+            }
         }
 
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int IndexOf(T item)
         {
-            return Array.IndexOf(array, item);
+            if (array == null)
+            {
+                return Array.IndexOf(array!, item);
+            }
+            else return -1;
         }
 
         /// <inheritdoc/>

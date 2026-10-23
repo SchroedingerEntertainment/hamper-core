@@ -6,14 +6,13 @@ namespace System
     /// <summary>
     /// Represents a collection of elements of type <typeparamref name="T"/>, accessible by their index
     /// </summary>
-    /// <typeparam name="T">A reference type to be stored</typeparam>
+    /// <typeparam name="T">The type to be stored</typeparam>
     #if EXPORT_HAMPER_CORE_SHARP
     public
     #else
     internal
     #endif
-    interface IArrayAccessor<T>
-        where T : class?
+    interface IArrayAccessor<T> : ISequence<T>
     {
         /// <summary>
         /// Gets the length of the underlying collection
@@ -31,12 +30,6 @@ namespace System
         {
             get;
         }
-            
-        /// <summary>
-        /// Creates a new span over the elements in the array
-        /// </summary>
-        /// <returns>The span created</returns>
-        Span<T> AsSpan();
 
         /// <summary>
         /// Resets the elements in the underlying collection to null

@@ -20,7 +20,7 @@ namespace Soe.Reactive
         /// <summary>
         /// Gets the source rejecting the connection
         /// </summary>
-        public object Source1
+        public new object Source
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return source; }

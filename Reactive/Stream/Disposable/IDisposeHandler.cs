@@ -25,7 +25,7 @@ namespace Soe.Reactive
         // ReSharper disable PureAttributeOnVoidMethod
         
         [Pure]
-        void Invoke(Target target, T instance);
+        static abstract void Invoke(Target target, T instance);
         
         // ReSharper restore PureAttributeOnVoidMethod
     }
@@ -51,7 +51,7 @@ namespace Soe.Reactive
         // ReSharper disable PureAttributeOnVoidMethod
         
         [Pure]
-        void Invoke(Target target, in TKey key, TValue instance);
+        static abstract void Invoke(Target target, in TKey key, TValue instance);
         
         // ReSharper restore PureAttributeOnVoidMethod
     }

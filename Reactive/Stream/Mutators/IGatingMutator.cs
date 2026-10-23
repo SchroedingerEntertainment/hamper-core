@@ -21,7 +21,6 @@ namespace Soe.Reactive
         /// </summary>
         /// <param name="value">The object that provides notification information</param>
         /// <returns>True if the object provided fulfills the branching criteria, false otherwise</returns>
-        [Pure]
         bool Invoke(in T value);
     }
 }

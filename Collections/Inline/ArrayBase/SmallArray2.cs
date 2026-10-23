@@ -49,7 +49,7 @@ namespace Soe.Collections.Inline
             {
                 return Array.IndexOf(array, item);
             }
-            else return MemoryMarshal.CreateSpan(ref Unsafe.As<object, IntPtr>(ref element0), DefaultCapacity).IndexOf(Unsafe.As<T, IntPtr>(ref item));
+            else return SpanHelper.IndexOf(AsSpanInternal(), item);
         }
 
         /// <inheritdoc/>
