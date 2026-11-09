@@ -1,3 +1,9 @@
+![Human Made](https://img.shields.io/badge/content-human--made-brightgreen?logo=github) 
+
+*All files in this repository are created by humans. AI tools may be used for research, but no AI-generated content is included*
+
+---
+
 Hamper Core is the foundation of the Hamper ecosystem.
 
 It provides the basic C# code modules that form the capability-oriented runtime and composition model that allows independent modules to discover, expose and consume functionality without compile-time dependencies. Filesystem interaction, REST- and web service communication and the composable data model create a shared understanding of the system and uses it to resolve capabilities, compose modules and execute data-driven pipelines
