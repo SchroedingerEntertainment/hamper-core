@@ -18,6 +18,14 @@ namespace Soe.Storage
     static partial class VolumeManager
     {
         private static HashSet<string, HeapArray<VolumeInfo>, VolumeInfo> volumes;
+
+        /// <summary>
+        /// Gets the amount of volumes registered
+        /// </summary>
+        public static int Count
+        {
+            get{ return volumes.Count; }
+        }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static VolumeManager()

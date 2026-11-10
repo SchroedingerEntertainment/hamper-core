@@ -10,7 +10,7 @@ namespace Soe.Runtime
     #else
     internal
     #endif
-    static class SpanExtension
+    static partial class SpanExtension
     {
         // ReSharper disable InvalidXmlDocComment
         

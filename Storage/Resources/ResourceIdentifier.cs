@@ -77,10 +77,139 @@ namespace Soe.Storage
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator ResourceIdentifier(string target)
+        {
+            return new ResourceIdentifier(target, Parse(target));
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator string(ResourceIdentifier identifier)
+        {
+            return identifier.identifier;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ResourceMetaData(ResourceIdentifier identifier)
         {
             return identifier.meta;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator TargetComponent(ResourceIdentifier identifier)
+        {
+            return identifier.Target;
+        }
+        
+        #region Concat operators
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char> operator /(ResourceIdentifier left, ResourceIdentifier right)
+        {
+            return Combine(left, right);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char, char> operator /(ReadOnlySpanTuple<char, char> left, ResourceIdentifier right)
+        {
+            return Combine(left, right);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char, char, char> operator /(ReadOnlySpanTuple<char, char, char> left, ResourceIdentifier right)
+        {
+            return Combine(left, right);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char, char, char, char> operator /(ReadOnlySpanTuple<char, char, char, char> left, ResourceIdentifier right)
+        {
+            return Combine(left, right);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char, char, char, char, char> operator /(ReadOnlySpanTuple<char, char, char, char, char> left, ResourceIdentifier right)
+        {
+            return Combine(left, right);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char, char, char, char, char, char> operator /(ReadOnlySpanTuple<char, char, char, char, char, char> left, ResourceIdentifier right)
+        {
+            return Combine(left, right);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char, char> operator /(ResourceIdentifier left, ReadOnlySpanTuple<char, char> right)
+        {
+            if (right.Item1.Length > 0 && (right.Item1[0] == Character.PathSeparator || right.Item1[0] == Character.PathSeparatorAlternative))
+            {
+                return ReadOnlySpanTuple.Create(left.Target.FullName, right.Item1.Slice(1), right.Item2);
+            }
+            else return ReadOnlySpanTuple.Create(left.Target.FullName, right.Item1, right.Item2);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char, char, char> operator /(ResourceIdentifier left, ReadOnlySpanTuple<char, char, char> right)
+        {
+            if (right.Item1.Length > 0 && (right.Item1[0] == Character.PathSeparator || right.Item1[0] == Character.PathSeparatorAlternative))
+            {
+                return ReadOnlySpanTuple.Create(left.Target.FullName, right.Item1.Slice(1), right.Item2, right.Item3);
+            }
+            else return ReadOnlySpanTuple.Create(left.Target.FullName, right.Item1, right.Item2, right.Item3);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char, char, char, char> operator /(ResourceIdentifier left, ReadOnlySpanTuple<char, char, char, char> right)
+        {
+            if (right.Item1.Length > 0 && (right.Item1[0] == Character.PathSeparator || right.Item1[0] == Character.PathSeparatorAlternative))
+            {
+                return ReadOnlySpanTuple.Create(left.Target.FullName, right.Item1.Slice(1), right.Item2, right.Item3, right.Item4);
+            }
+            else return ReadOnlySpanTuple.Create(left.Target.FullName, right.Item1, right.Item2, right.Item3, right.Item4);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char, char, char, char, char> operator /(ResourceIdentifier left, ReadOnlySpanTuple<char, char, char, char, char> right)
+        {
+            if (right.Item1.Length > 0 && (right.Item1[0] == Character.PathSeparator || right.Item1[0] == Character.PathSeparatorAlternative))
+            {
+                return ReadOnlySpanTuple.Create(left.Target.FullName, right.Item1.Slice(1), right.Item2, right.Item3, right.Item4, right.Item5);
+            }
+            else return ReadOnlySpanTuple.Create(left.Target.FullName, right.Item1, right.Item2, right.Item3, right.Item4, right.Item5);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char, char, char, char, char, char> operator /(ResourceIdentifier left, ReadOnlySpanTuple<char, char, char, char, char, char> right)
+        {
+            if (right.Item1.Length > 0 && (right.Item1[0] == Character.PathSeparator || right.Item1[0] == Character.PathSeparatorAlternative))
+            {
+                return ReadOnlySpanTuple.Create(left.Target.FullName, right.Item1.Slice(1), right.Item2, right.Item3, right.Item4, right.Item5, right.Item6);
+            }
+            else return ReadOnlySpanTuple.Create(left.Target.FullName, right.Item1, right.Item2, right.Item3, right.Item4, right.Item5, right.Item6);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char> operator /(string left, ResourceIdentifier right)
+        {
+            if (string.IsNullOrWhiteSpace(left))
+            {
+                throw new ArgumentOutOfRangeException(nameof(left));
+            }
+            else return Combine(left, right);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char> operator /(ResourceIdentifier left, string right)
+        {
+            if (string.IsNullOrWhiteSpace(right))
+            {
+                throw new ArgumentOutOfRangeException(nameof(right));
+            }
+            else if (right.Length > 0 && (right[0] == Character.PathSeparator || right[0] == Character.PathSeparatorAlternative))
+            {
+                return ReadOnlySpanTuple.Create(left.Target.FullName, right.AsSpan(1));
+            }
+            else return ReadOnlySpanTuple.Create(left.Target.FullName, right.AsSpan());
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char> operator /(ReadOnlySpan<char> left, ResourceIdentifier right)
+        {
+            return Combine(left, right);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpanTuple<char, char> operator /(ResourceIdentifier left, ReadOnlySpan<char> right)
+        {
+            if (right.Length > 0 && (right[0] == Character.PathSeparator || right[0] == Character.PathSeparatorAlternative))
+            {
+                return ReadOnlySpanTuple.Create(left.Target.FullName, right.Slice(1));
+            }
+            else return ReadOnlySpanTuple.Create(left.Target.FullName, right);
+        }
+        #endregion
         
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

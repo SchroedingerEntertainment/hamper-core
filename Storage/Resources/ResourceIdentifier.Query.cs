@@ -24,41 +24,13 @@ namespace Soe.Storage
                 return new ReadOnlyQueryIterator(Args);
             }
         }
-
-        /// <summary>
-        /// Represents a single parameter
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        public readonly ref struct QueryParameter(ReadOnlySpan<char> key, ReadOnlySpan<char> value)
-        {
-            private readonly ReadOnlySpan<char> key = key;
-            /// <summary>
-            /// Gets the key of this parameter
-            /// </summary>
-            public ReadOnlySpan<char> Key
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get { return key; }
-            }
-            
-            private readonly ReadOnlySpan<char> value = value;
-            /// <summary>
-            /// Gets the value of this parameter
-            /// </summary>
-            public ReadOnlySpan<char> Value
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get { return value; }
-            }
-        }
         
         /// <summary>
         /// Handles iteration over a collection of read-only arguments
         /// </summary>
         /// <param name="source">The argument string to parse</param>
         [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref struct ReadOnlyQueryIterator(ReadOnlySpan<char> source)
+        public ref struct ReadOnlyQueryIterator(ReadOnlySpan<char> source) : IReadOnlyIterator<ReadOnlySpanTuple<char, char>>
         {
             private readonly ReadOnlySpan<char> source = source;
             private Range property;
@@ -70,11 +42,11 @@ namespace Soe.Storage
             /// <summary>
             /// Gets the element in the collection at the current position of this iterator
             /// </summary>
-            public QueryParameter Current
+            public ReadOnlySpanTuple<char, char> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get { return new QueryParameter(source.Slice(property.Start.Value, property.End.Value),
-                                                source.Slice(value.Start.Value, value.End.Value)); }
+                get { return ReadOnlySpanTuple.Create(source.Slice(property.Start.Value, property.End.Value),
+                                                      source.Slice(value.Start.Value, value.End.Value)); }
             }
             
             // ReSharper restore MemberHidesStaticFromOuterClass

@@ -54,5 +54,34 @@ namespace Soe.Runtime
         /// <param name="format">A composite format string</param>
         /// <param name="arg">A collection of objects to write using format</param>
         void Message(VerbosityFlags messageType, SeverityFlags messageLevel, string format, params object?[]? arg);
+        
+        /// <summary>
+        /// Prompts the user and awaits an input
+        /// </summary>
+        /// <param name="message">The message to write</param>
+        /// <returns>The provided response</returns>
+        public string? Prompt(string message);
+        /// <summary>
+        /// Prompts the user and awaits an input
+        /// </summary>
+        /// <param name="format">A composite format string</param>
+        /// <param name="arg0">The first object to write using format</param>
+        /// <returns>The provided response</returns>
+        public string? Prompt(string format, object? arg0);
+        /// <summary>
+        /// Prompts the user and awaits an input
+        /// </summary>
+        /// <param name="format">A composite format string</param>
+        /// <param name="arg0">The first object to write using format</param>
+        /// <param name="arg1">The second object to write using format</param>
+        /// <returns>The provided response</returns>
+        public string? Prompt(string format, object? arg0, object? arg1);
+        /// <summary>
+        /// Prompts the user and awaits an input
+        /// </summary>
+        /// <param name="format">A composite format string</param>
+        /// <param name="arg">A collection of objects to write using format</param>
+        /// <returns>The provided response</returns>
+        public string? Prompt(string format, params object?[]? arg);
     }
 }

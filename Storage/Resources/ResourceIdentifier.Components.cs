@@ -114,7 +114,7 @@ namespace Soe.Storage
                 get
                 {
                     ReadOnlySpan<char> path = Path;
-                    return (path.Length > 0 && path[0] == Character.PathSeparator);
+                    return (path.Length > 0 && (path[0] == Character.PathSeparator || path[0] == Character.PathSeparatorAlternative));
                 }
             }
         

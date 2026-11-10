@@ -67,13 +67,13 @@ namespace Soe.Threading
             /// The object instance of this element
             /// </summary>
             [FieldOffset(8)]
-            public object Instance;
+            public object Instance = null!;
 
             /// <summary>
             /// The current generic typed operator for this object
             /// </summary>
             [FieldOffset(16)]
-            public ManagerDelegate Delegate;
+            public ManagerDelegate Delegate = null!;
             
             /// <summary>
             /// Gets if this element has the black bit set

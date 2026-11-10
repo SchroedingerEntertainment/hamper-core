@@ -126,5 +126,69 @@ namespace Soe.Runtime
             }
             LogService.Message(messageType, messageLevel, format, arg);
         }
+
+        /// <summary>
+        /// Prompts the user and awaits an input
+        /// </summary>
+        /// <param name="localization">The localization object for this prompt</param>
+        /// <param name="settings">The settings for this prompt</param>
+        /// <param name="message">The message to write</param>
+        /// <returns>The result of the user prompt</returns>
+        public static bool Prompt(PromptLocalisation localization, PromptSettings settings, string message)
+        {
+            char trueKey = (settings.FlagSet(PromptSettings.InvertDefault) ? char.ToUpperInvariant(localization.TrueKey) : char.ToLowerInvariant(localization.TrueKey));
+            char falseKey = (settings.FlagSet(PromptSettings.InvertDefault) ? char.ToLowerInvariant(localization.FalseKey) : char.ToUpperInvariant(localization.FalseKey));
+            for(; ;)
+            {
+                string? result = LogService.Prompt(string.Concat(message, " [",  trueKey, "/", falseKey, "] "));
+                if (string.IsNullOrEmpty(result))
+                {
+                    return settings.FlagSet(PromptSettings.InvertDefault);
+                }
+                else if (result.Length == 1)
+                {
+                    char key = char.ToLowerInvariant(result[0]);
+                    if (key == char.ToLowerInvariant(localization.TrueKey))
+                    {
+                        return true;
+                    }
+                    else if(key == char.ToLowerInvariant(localization.FalseKey))
+                    {
+                        return false;
+                    }
+                }
+                if(settings.FlagSet(PromptSettings.ValidateInput))
+                {
+                    LogService.Message(VerbosityFlags.Error, SeverityFlags.Silent, localization.ErrorMessage, localization.TrueKey, localization.FalseKey);
+                }
+                else return settings.FlagSet(PromptSettings.InvertDefault);
+            }
+        }
+        /// <summary>
+        /// Prompts the user and awaits an input
+        /// </summary>
+        /// <param name="localization">The localization object for this prompt</param>
+        /// <param name="settings">The settings for this prompt</param>
+        /// <param name="format">A composite format string</param>
+        /// <param name="arg0">The first object to write using format</param>
+        /// <returns>The result of the user prompt</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Prompt(PromptLocalisation localization, PromptSettings settings, string format, object? arg0)
+        {
+            return Prompt(localization, settings, string.Format(format, arg0));
+        }
+        /// <summary>
+        /// Prompts the user and awaits an input
+        /// </summary>
+        /// <param name="localization">The localization object for this prompt</param>
+        /// <param name="settings">The settings for this prompt</param>
+        /// <param name="format">A composite format string</param>
+        /// <param name="arg0">The first object to write using format</param>
+        /// <param name="arg1">The second object to write using format</param>
+        /// <returns>The result of the user prompt</returns>
+        public static bool Prompt(PromptLocalisation localization, PromptSettings settings, string format, object? arg0, object? arg1)
+        {
+            return Prompt(localization, settings, string.Format(format, arg0, arg1));
+        }
     }
 }

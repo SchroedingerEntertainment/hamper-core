@@ -48,19 +48,23 @@ namespace System
     #else
     internal
     #endif
-    ref struct Iterator<T, Strategy>(Span<T> source)
+    ref struct Iterator<T, Strategy>(Span<T> source) : IIterator<T>, IReadOnlyIterator<T>
         where Strategy : struct, IIteratorStrategy<T>
     {
         private readonly Span<T> source = source;
         private int index = Strategy.Begin(source);
         
-        /// <summary>
-        /// Gets a reference to the element in the collection at the current position of this iterator
-        /// </summary>
+        /// <inheritdoc/>
         public ref T Current
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return ref source[index]; }
+        }
+        /// <inheritdoc/>
+        T IReadOnlyIterator<T>.Current
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return source[index]; }
         }
 
         /// <summary>
@@ -93,7 +97,7 @@ namespace System
     #else
     internal
     #endif
-    ref struct Iterator<T, Parameter, Strategy>
+    ref struct Iterator<T, Parameter, Strategy> : IIterator<T>, IReadOnlyIterator<T>
         where Parameter : struct
         where Strategy : struct, IIteratorStrategy<T, Parameter>
     {
@@ -101,19 +105,24 @@ namespace System
         private Parameter parameter;
         private int index;
         
-        /// <summary>
-        /// Gets the element in the collection at the current position of this iterator
-        /// </summary>
+        /// <inheritdoc/>
         public ref T Current
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return ref source[index]; }
+        }
+        /// <inheritdoc/>
+        T IReadOnlyIterator<T>.Current
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return source[index]; }
         }
 
         /// <summary>
         /// Initializes this iterator with the provided source
         /// </summary>
         /// <param name="source">The collection this iterator instance handles</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Iterator(Span<T> source)
         {
             this.source = source;

@@ -17,9 +17,19 @@ namespace Soe.Runtime
         /// </summary>
         /// <param name="type">The workspace to determine the root for</param>
         /// <returns>A string pointing to the target root</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string? FindWorkspaceRoot(WorkspaceType type)
         {
             ReadOnlySpan<char> source = (type == WorkspaceType.Root ? BaseDirectory : LocalDirectory);
+            return FindWorkspaceRoot(source);
+        }
+        /// <summary>
+        /// Attempts to find the root target of the provided source
+        /// </summary>
+        /// <param name="source">The source to determine the root for</param>
+        /// <returns>A string pointing to the target root</returns>
+        public static string? FindWorkspaceRoot(ReadOnlySpan<char> source)
+        {
             Span<char> systemSeparator = stackalloc char[1];
             systemSeparator[0] = Path.DirectorySeparatorChar;
 

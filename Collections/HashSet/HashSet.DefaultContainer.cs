@@ -34,11 +34,12 @@ namespace Soe.Collections.HashSet
                 get { return key; }
             }
 
+            private readonly bool isValid = true;
             /// <inheritdoc/>
             public bool IsValid
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get { return (hash != 0 && key != null); }
+                get { return isValid; }
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -273,6 +273,61 @@ namespace Soe.Storage
             }
         }
 
+        /// <summary>
+        /// Computes the corresponding metadata for a unified resource identifier 
+        /// </summary>
+        /// <param name="source">The source to compute the metadata from</param>
+        /// <returns>The computed metadata corresponding to the provided source</returns>
+        /// <remarks>Fast path expects a normalized path without UNC, URI or query components</remarks>
+        public static ResourceMetaData ParseFast(ReadOnlySpan<char> source)
+        {
+            int name = 0;
+            int extension = source.Length;
+            for(int i = source.Length - 1; i >= 0; i--)
+            {
+                switch (source[i])
+                {
+                    #region Name
+                    case Character.PathSeparator:
+                    case Character.PathSeparatorAlternative:
+                        {
+                            name = i + 1;
+                            if (extension - name <= byte.MaxValue)
+                            {
+                                extension -= name;
+                            }
+                            else ThrowPathTooLong(byte.MaxValue);
+                        }
+                        goto End;
+                    #endregion
+                    
+                    #region Extension
+                    case Character.FileExtensionSeparator: if (extension == source.Length)
+                        {
+                            extension = i;
+                        }
+                        break;
+                    #endregion
+                }
+            }
+        End:
+        
+            ResourceMetaData meta = new ResourceMetaData(0, 0, 0, name, extension, source.Length);
+            Fixup(ref meta, source.Length);
+            return meta;
+        }
+        /// <summary>
+        /// Computes the corresponding metadata for a unified resource identifier 
+        /// </summary>
+        /// <param name="source">The source to compute the metadata from</param>
+        /// <returns>The computed metadata corresponding to the provided source</returns>
+        /// <remarks>Fast path expects a normalized path without UNC, URI or query components</remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ResourceMetaData ParseFast(string source)
+        {
+            return ParseFast(source.AsSpan());
+        }
+        
         static void Fixup(ref ResourceMetaData result, int length)
         {
             if (result.Path < result.Authority)

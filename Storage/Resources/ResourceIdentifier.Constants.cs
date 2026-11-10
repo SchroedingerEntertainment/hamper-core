@@ -21,6 +21,11 @@ namespace Soe.Storage
         public static readonly ResourceIdentifier Current = new ResourceIdentifier("./", new ResourceMetaData(IdentifierFlags.IsRelative, 0, 0, 2, 2, 2));
 
         /// <summary>
+        /// A unified resource identifier pointing to the current user's home directory
+        /// </summary>
+        public static readonly ResourceIdentifier Home = new ResourceIdentifier("~/", new ResourceMetaData(IdentifierFlags.IsRelative, 0, 0, 2, 2, 2));
+        
+        /// <summary>
         /// Determines the available character used when parsing
         /// </summary>
         public static class Character

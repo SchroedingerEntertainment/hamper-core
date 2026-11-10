@@ -43,6 +43,17 @@ namespace Soe.Composable
             }
             else throw new InvalidOperationException();
         }
+        
+        /// <summary>
+        /// Tries to receive a reference to the <see cref="Shard"/> this object is managed by
+        /// </summary>
+        /// <param name="result">A reference to the <see cref="Shard"/> this object is managed by</param>
+        /// <returns>True if the <see cref="Shard"/> this object is pointing to exists, false otherwise</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetShard(out Shard? result)
+        {
+            return Shard.TryGetShard(shardId, out result);
+        }
 
         /// <summary>
         /// Tries to set certain flag bits for this object's component data

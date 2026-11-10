@@ -18,9 +18,13 @@ namespace Soe.Runtime
         /// </summary>
         Root,
         /// <summary>
-        /// Defines a local workspace
+        /// Defines a non-root workspace
         /// </summary>
         /// <remarks>This can be equal to <see cref="WorkspaceType.Root"/></remarks>
-        Tree
+        Tree,
+        /// <summary>
+        /// Defines a workspace without a root
+        /// </summary>
+        Local
     }
 }

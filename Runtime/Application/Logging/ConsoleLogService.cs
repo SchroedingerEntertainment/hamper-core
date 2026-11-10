@@ -106,6 +106,63 @@ namespace Soe.Runtime
             }
         }
 
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string? Prompt(string message)
+        {
+            if (!Console.IsOutputRedirected)
+            {
+                using (ScopedDisposable.Acquire<UInt32, FastSpinLock.LockOperation>(ref lockVariable))
+                {
+                    Console.Write(message);
+                    return Console.ReadLine();
+                }
+            }
+            else return null;
+        }
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string? Prompt(string format, object? arg0)
+        {
+            if (!Console.IsOutputRedirected)
+            {
+                using (ScopedDisposable.Acquire<UInt32, FastSpinLock.LockOperation>(ref lockVariable))
+                {
+                    Console.Write(format, arg0);
+                    return Console.ReadLine();
+                }
+            }
+            else return null;
+        }
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string? Prompt(string format, object? arg0, object? arg1)
+        {
+            if (!Console.IsOutputRedirected)
+            {
+                using (ScopedDisposable.Acquire<UInt32, FastSpinLock.LockOperation>(ref lockVariable))
+                {
+                    Console.Write(format, arg0, arg1);
+                    return Console.ReadLine();
+                }
+            }
+            else return null;
+        }
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string? Prompt(string format, params object?[]? arg)
+        {
+            if (!Console.IsOutputRedirected)
+            {
+                using (ScopedDisposable.Acquire<UInt32, FastSpinLock.LockOperation>(ref lockVariable))
+                {
+                    Console.Write(format, arg);
+                    return Console.ReadLine();
+                }
+            }
+            else return null;
+        }
+        
         static void ProcessPrefix(VerbosityFlags messageType, bool withColor)
         {
             if (messageType == VerbosityFlags.Warning)

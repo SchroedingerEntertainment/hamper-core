@@ -417,7 +417,7 @@ namespace Soe.Composable
         #region IIterable Members
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        Iterator<T, Iterator<T>.DefaultStrategy> IIterable<T, Iterator<T>.DefaultStrategy>.GetEnumerator()
+        public Iterator<T, Iterator<T>.DefaultStrategy> GetEnumerator()
         {
             return new Iterator<T, Iterator<T>.DefaultStrategy>(AsSpan());
         }
