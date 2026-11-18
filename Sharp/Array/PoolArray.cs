@@ -67,6 +67,13 @@ namespace System
                 Array.Clear(array);
             }
         }
+        
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            Resize(0);
+        }
 
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -84,12 +91,20 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Resize(int size)
         {
-            T[]? tmp = array;
-            array = ArrayPool<T>.Shared.Rent(size);
-            if(tmp?.Length > 0)
+            if (size > 0)
             {
-                Array.Copy(tmp, 0, array, 0, Math.Min(tmp.Length, array.Length));
-                ArrayPool<T>.Shared.Return(tmp!);
+                T[]? tmp = array;
+                array = ArrayPool<T>.Shared.Rent(size);
+                if (tmp?.Length > 0)
+                {
+                    Array.Copy(tmp, 0, array, 0, Math.Min(tmp.Length, array.Length));
+                    ArrayPool<T>.Shared.Return(tmp!);
+                }
+            }
+            else if (Length > 0)
+            {
+                ArrayPool<T>.Shared.Return(array!);
+                array = Array.Empty<T>();
             }
             return true;
         }

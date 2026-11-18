@@ -1,0 +1,10 @@
+{
+  "type": "package",
+  "name": "hamper.core.crypto",
+  "version": "1.0.0",
+  "license": "AGPL-3.0-only",
+  "dependencies": {
+    "hamper.core.sharp": "1.1.x",
+    "hamper.core.math": "1.1.x"
+  }
+} 

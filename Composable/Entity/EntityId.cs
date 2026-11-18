@@ -18,10 +18,10 @@ namespace Soe.Composable
     readonly partial struct EntityId : IEquatable<EntityId>
     {
         [FieldOffset(0)]
-        readonly UInt64 value;
+        private readonly UInt64 value;
 
         [FieldOffset(0)]
-        readonly int index;
+        private readonly int index;
         /// <summary>
         /// Gets the index of this object in the registry
         /// </summary>
@@ -32,7 +32,7 @@ namespace Soe.Composable
         }
 
         [FieldOffset(4)]
-        readonly UInt16 version;
+        private readonly UInt16 version;
         /// <summary>
         /// Gets the current version of this object
         /// </summary>
@@ -43,7 +43,7 @@ namespace Soe.Composable
         }
 
         [FieldOffset(6)]
-        readonly byte shardId;
+        private readonly byte shardId;
         /// <summary>
         /// Gets the <see cref="Shard"/> this object belongs to
         /// </summary>
@@ -54,7 +54,7 @@ namespace Soe.Composable
         }
 
         [FieldOffset(7)]
-        readonly EntityFlags flags;
+        private readonly EntityFlags flags;
         /// <summary>
         /// Gets a combination of flags specifying various constraints to this object
         /// </summary>
@@ -71,7 +71,8 @@ namespace Soe.Composable
         /// <param name="version">The version of this object</param>
         /// <param name="shard">The <see cref="Shard"/> this object belongs to</param>
         /// <param name="flags">A combination of flags specifying various constraints to this object</param>
-		public EntityId(int index, int version, int shard, EntityFlags flags)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public EntityId(int index, int version, int shard, EntityFlags flags)
         {
             this.index = index;
             this.version = (UInt16)version;
@@ -82,7 +83,8 @@ namespace Soe.Composable
         /// Initializes this object with the provided identity
         /// </summary>
         /// <param name="value">This objects identity</param>
-		public EntityId(UInt64 value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public EntityId(UInt64 value)
         {
             this.value = value;
         }

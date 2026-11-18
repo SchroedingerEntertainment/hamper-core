@@ -16,7 +16,7 @@ namespace Soe.Reactive
     #else
     internal
     #endif
-    struct AsyncObservableStrategy<T, DispatchingStrategy,  SubscriptionStrategy>
+    struct AsyncObservableStrategy<T, DispatchingStrategy,  SubscriptionStrategy> : IDisposable
         where DispatchingStrategy : struct, IAsyncDispatchingStrategy<T>
         where SubscriptionStrategy : struct, IAsyncSubscriptionStrategy<T>
     {
@@ -38,6 +38,14 @@ namespace Soe.Reactive
             this.Subscriptions = default;
             this.Dispatcher = default;
         }
+        
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            Subscriptions.Dispose();
+            Dispatcher.Dispose();
+        }
     }
     
     /// <summary>
@@ -52,7 +60,7 @@ namespace Soe.Reactive
     #else
     internal
     #endif
-    struct AsyncObservableStrategy<TKey, TValue, DispatchingStrategy,  SubscriptionStrategy>
+    struct AsyncObservableStrategy<TKey, TValue, DispatchingStrategy,  SubscriptionStrategy> : IDisposable
         where DispatchingStrategy : struct, IAsyncDispatchingStrategy<TValue>
         where SubscriptionStrategy : struct, IAsyncSubscriptionStrategy<TKey, TValue>
     {
@@ -73,6 +81,14 @@ namespace Soe.Reactive
         {
             this.Subscriptions = default;
             this.Dispatcher = default;
+        }
+        
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            Subscriptions.Dispose();
+            Dispatcher.Dispose();
         }
     }
 }

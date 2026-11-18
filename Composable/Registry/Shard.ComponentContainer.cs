@@ -20,7 +20,7 @@ namespace Soe.Composable
         /// <param name="hash">The hash code of the key</param>
         /// <param name="key">The runtime <see cref="Type"/> of the pure data structure</param>
         [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
-        readonly struct ComponentContainer(IComponent instance, int hash, Type key) : IHashContainer<Type>
+        readonly struct ComponentContainer(IComponent instance, int hash, Type key) : IHashContainer<Type>, IDisposable
         {
             /// <inheritdoc/>
             public int Hash
@@ -71,6 +71,13 @@ namespace Soe.Composable
             public void Clear()
             {
                 instance.Clear();
+            }
+
+            /// <inheritdoc/>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Dispose()
+            {
+                instance.Dispose();
             }
         }
     }

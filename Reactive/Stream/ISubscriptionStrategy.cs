@@ -1,8 +1,6 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System;
-
 namespace Soe.Reactive
 {
     /// <summary>
@@ -14,7 +12,7 @@ namespace Soe.Reactive
     #else
     internal
     #endif
-    interface ISubscriptionStrategy<T>
+    interface ISubscriptionStrategy<T> : IDisposable
     {
         /// <summary>
         /// Gets the amount of observers managed by this object
@@ -74,7 +72,7 @@ namespace Soe.Reactive
     #else
     internal
     #endif
-    interface ISubscriptionStrategy<TKey, TValue>
+    interface ISubscriptionStrategy<TKey, TValue> : IDisposable
     {
         /// <summary>
         /// Gets the amount of observers managed by this object
