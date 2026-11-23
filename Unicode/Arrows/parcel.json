@@ -1,0 +1,11 @@
+{
+  "type": "package",
+  "name": "hamper.core.unicode.arrows",
+  "alias": "Arrows",
+  "version": "1.0.0",
+  "license": "AGPL-3.0-only",
+  "dependencies": {
+    "hamper.core.sharp": "1.1.x",
+    "hamper.core.unicode": "1.1.x"
+  }
+}

@@ -1,7 +1,6 @@
 // Licensed to Schroedinger Entertainment (SOE) under the terms of the AGPLv3
 // Licensed to you by SOE under the terms of the AGPLv3 or another OSI-approved license 
 
-using System;
 using System.Threading.Tasks;
 
 namespace Soe.Reactive
@@ -15,7 +14,7 @@ namespace Soe.Reactive
     #else
     internal
     #endif
-    interface IAsyncSubscriptionStrategy<T>
+    interface IAsyncSubscriptionStrategy<T> : IDisposable
     {
         /// <summary>
         /// Gets the amount of observers managed by this object
@@ -78,7 +77,7 @@ namespace Soe.Reactive
     #else
     internal
     #endif
-    interface IAsyncSubscriptionStrategy<TKey, TValue>
+    interface IAsyncSubscriptionStrategy<TKey, TValue> : IDisposable
     {
         /// <summary>
         /// Gets the amount of observers managed by this object

@@ -61,6 +61,7 @@ namespace Soe.Composable
                 if (registry[i].IsValid)
                 {
                     registry[i].Clear();
+                    registry[i].Dispose();
                     registry[i] = default;
                 }
             }
@@ -97,6 +98,22 @@ namespace Soe.Composable
             else throw new TypeAccessException();
         }
 
+        /// <summary>
+        /// Receive the instance of a component pool for the provided pure data structure of type <typeparamref name="T"/>
+        /// </summary>
+        /// <typeparam name="T">The pure data structure defining specific properties</typeparam>
+        /// <returns>The component pool for the provided pure data structure</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Component<T>? GetComponent<T>()
+            where T : struct
+        {
+            if (TryGetComponent(out Component<T>? instance))
+            {
+                return instance;
+            }
+            else throw new TypeAccessException();
+        }
+        
         /// <summary>
         /// Tries to receive the instance of a component pool for the provided pure data structure of type <typeparamref name="T"/>
         /// </summary>

@@ -48,19 +48,23 @@ namespace System
     #else
     internal
     #endif
-    ref struct Iterator<T, Strategy>(Span<T> source)
+    ref struct Iterator<T, Strategy>(Span<T> source) : IIterator<T>, IReadOnlyIterator<T>
         where Strategy : struct, IIteratorStrategy<T>
     {
         private readonly Span<T> source = source;
         private int index = Strategy.Begin(source);
         
-        /// <summary>
-        /// Gets a reference to the element in the collection at the current position of this iterator
-        /// </summary>
+        /// <inheritdoc/>
         public ref T Current
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return ref source[index]; }
+        }
+        /// <inheritdoc/>
+        T IReadOnlyIterator<T>.Current
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return source[index]; }
         }
 
         /// <summary>
@@ -80,6 +84,69 @@ namespace System
         public void Reset()
         {
             index = Strategy.Begin(source);
+        }
+    }
+    /// <summary>
+    /// Handles iteration over a collection of elements of type <typeparamref name="T"/>
+    /// </summary>
+    /// <typeparam name="T">The element type of the collection</typeparam>
+    /// <typeparam name="Parameter">An additional parameter used by the strategy</typeparam>
+    /// <typeparam name="Strategy">A strategy controlling the behavior of the iterator</typeparam>
+    #if EXPORT_HAMPER_CORE_SHARP
+    public
+    #else
+    internal
+    #endif
+    ref struct Iterator<T, Parameter, Strategy> : IIterator<T>, IReadOnlyIterator<T>
+        where Parameter : struct
+        where Strategy : struct, IIteratorStrategy<T, Parameter>
+    {
+        private readonly Span<T> source;
+        private Parameter parameter;
+        private int index;
+        
+        /// <inheritdoc/>
+        public ref T Current
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return ref source[index]; }
+        }
+        /// <inheritdoc/>
+        T IReadOnlyIterator<T>.Current
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return source[index]; }
+        }
+
+        /// <summary>
+        /// Initializes this iterator with the provided source
+        /// </summary>
+        /// <param name="source">The collection this iterator instance handles</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Iterator(Span<T> source)
+        {
+            this.source = source;
+            this.parameter = default;
+            this.index = Strategy.Begin(source, ref parameter);
+        }
+        
+        /// <summary>
+        /// Advances the iterator to the next element of the collection
+        /// </summary>
+        /// <returns>True if the iterator was successfully advanced to the next element, false otherwise</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool MoveNext()
+        {
+            return Strategy.MoveNext(source, ref parameter, ref index);
+        }
+
+        /// <summary>
+        /// Sets the iterator to its initial position
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reset()
+        {
+            index = Strategy.Begin(source, ref parameter);
         }
     }
 }

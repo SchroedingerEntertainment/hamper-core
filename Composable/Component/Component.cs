@@ -199,6 +199,14 @@ namespace Soe.Composable
             return (((~EntityId.Null & entity) ^ entityPtr) < EntityId.Null);
         }
 
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            entities.Dispose();
+            components.Dispose();
+        }
+
         /// <summary>
         /// Searches for the specified entity and returns the index of its component data in the pool
         /// </summary>
@@ -409,7 +417,7 @@ namespace Soe.Composable
         #region IIterable Members
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        Iterator<T, Iterator<T>.DefaultStrategy> IIterable<T, Iterator<T>.DefaultStrategy>.GetEnumerator()
+        public Iterator<T, Iterator<T>.DefaultStrategy> GetEnumerator()
         {
             return new Iterator<T, Iterator<T>.DefaultStrategy>(AsSpan());
         }

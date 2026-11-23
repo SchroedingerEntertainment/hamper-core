@@ -21,10 +21,10 @@ namespace Soe.Collections.Embedded
     #else
     internal
     #endif
-    partial struct EmbeddedDictionary<TKey, TValue, ArrayBuffer> : IIterable<EmbeddedDictionary<TKey, TValue, ArrayBuffer>.HashEntry, EmbeddedDictionary<TKey, TValue, ArrayBuffer>.IteratorStrategy>, IReadOnlyIterable<EmbeddedDictionary<TKey, TValue, ArrayBuffer>.HashEntry, EmbeddedDictionary<TKey, TValue, ArrayBuffer>.ReadOnlyIteratorStrategy>, ISequence<EmbeddedDictionary<TKey, TValue, ArrayBuffer>.HashEntry>
-        where ArrayBuffer : struct, IArrayAccessor<EmbeddedDictionary<TKey, TValue, ArrayBuffer>.HashEntry>
+    partial struct EmbeddedDictionary<TKey, TValue, ArrayBuffer> : IIterable<EmbeddedDictionary<TKey, TValue>.HashEntry, EmbeddedDictionary<TKey, TValue>.IteratorStrategy>, IReadOnlyIterable<EmbeddedDictionary<TKey, TValue>.HashEntry, EmbeddedDictionary<TKey, TValue>.ReadOnlyIteratorStrategy>, ISequence<EmbeddedDictionary<TKey, TValue>.HashEntry>, IDisposable
+        where ArrayBuffer : struct, IArrayAccessor<EmbeddedDictionary<TKey, TValue>.HashEntry>
     {
-        private HashSet<TKey, ArrayBuffer, HashEntry> hashSet;
+        private HashSet<TKey, ArrayBuffer, EmbeddedDictionary<TKey, TValue>.HashEntry> hashSet;
         
         /// <summary>
         /// Gets the total numbers of elements the internal data structure can hold without resizing
@@ -53,7 +53,7 @@ namespace Soe.Collections.Embedded
             get
             {
                 int hash = key!.GetHashCode();
-                if (hashSet.Find(key, hash, out _, out _, out Ref<HashEntry> result))
+                if (hashSet.Find(key, hash, out _, out _, out Ref<EmbeddedDictionary<TKey, TValue>.HashEntry> result))
                 {
                     return ref result.Value.Value;
                 }
@@ -89,7 +89,7 @@ namespace Soe.Collections.Embedded
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EmbeddedDictionary(EqualityComparer<TKey> comparer)
         {
-            this.hashSet = new HashSet<TKey, ArrayBuffer, HashEntry>(comparer);
+            this.hashSet = new HashSet<TKey, ArrayBuffer, EmbeddedDictionary<TKey, TValue>.HashEntry>(comparer);
         }
         /// <summary>
         /// Initializes an empty instance of this container
@@ -101,7 +101,7 @@ namespace Soe.Collections.Embedded
 
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<HashEntry> AsSpan()
+        public Span<EmbeddedDictionary<TKey, TValue>.HashEntry> AsSpan()
         {
             return hashSet.AsSpan();
         }
@@ -117,7 +117,7 @@ namespace Soe.Collections.Embedded
             int hash = key!.GetHashCode();
             if (!hashSet.Find(key, hash, out int index, out int distance, out _))
             {
-                hashSet.Emplace(key, hash, index, distance, hashSet.Version) = new HashEntry(key, hash, value);
+                hashSet.Emplace(key, hash, index, distance, hashSet.Version) = new EmbeddedDictionary<TKey, TValue>.HashEntry(key, hash, value);
             }
             else throw new ArgumentException();
         }
@@ -149,7 +149,7 @@ namespace Soe.Collections.Embedded
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
             int hash = item.Key!.GetHashCode();
-            if (hashSet.Find(item.Key, hash, out _, out _, out Ref<HashEntry> result))
+            if (hashSet.Find(item.Key, hash, out _, out _, out Ref<EmbeddedDictionary<TKey, TValue>.HashEntry> result))
             {
                 return EqualityComparer<TValue>.Default.Equals(item.Value, result.Value.Value);
             }
@@ -172,6 +172,13 @@ namespace Soe.Collections.Embedded
             else return false;
         }
 
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            hashSet.Dispose();
+        }
+        
         /// <summary>
         /// Removes the value with the specified key from the container
         /// </summary>
@@ -179,7 +186,7 @@ namespace Soe.Collections.Embedded
         /// <returns>True if the element is successfully found and removed, false otherwise</returns>
         public bool Remove(TKey key)
         {
-            if (hashSet.Find(key, key!.GetHashCode(), out _, out _, out Ref<HashEntry> result))
+            if (hashSet.Find(key, key!.GetHashCode(), out _, out _, out Ref<EmbeddedDictionary<TKey, TValue>.HashEntry> result))
             {
                 result.Value = default;
                 return true;
@@ -220,7 +227,7 @@ namespace Soe.Collections.Embedded
         public bool TryGetValue(TKey key, out TValue value)
         {
             int hash = key!.GetHashCode();
-            if (hashSet.Find(key, hash, out _, out _, out Ref<HashEntry> result))
+            if (hashSet.Find(key, hash, out _, out _, out Ref<EmbeddedDictionary<TKey, TValue>.HashEntry> result))
             {
                 value = result.Value.Value;
                 return true;
@@ -235,17 +242,17 @@ namespace Soe.Collections.Embedded
         #region IIterable Members
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Iterator<HashEntry, IteratorStrategy> GetEnumerator()
+        public Iterator<EmbeddedDictionary<TKey, TValue>.HashEntry, EmbeddedDictionary<TKey, TValue>.IteratorStrategy> GetEnumerator()
         {
-            return new Iterator<HashEntry, IteratorStrategy>(AsSpan());
+            return new Iterator<EmbeddedDictionary<TKey, TValue>.HashEntry, EmbeddedDictionary<TKey, TValue>.IteratorStrategy>(AsSpan());
         }
         #endregion
         #region IReadOnlyIterable Members
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        ReadOnlyIterator<HashEntry, ReadOnlyIteratorStrategy> IReadOnlyIterable<HashEntry, ReadOnlyIteratorStrategy>.GetEnumerator()
+        ReadOnlyIterator<EmbeddedDictionary<TKey, TValue>.HashEntry, EmbeddedDictionary<TKey, TValue>.ReadOnlyIteratorStrategy> IReadOnlyIterable<EmbeddedDictionary<TKey, TValue>.HashEntry, EmbeddedDictionary<TKey, TValue>.ReadOnlyIteratorStrategy>.GetEnumerator()
         {
-            return new ReadOnlyIterator<HashEntry, ReadOnlyIteratorStrategy>(AsSpan());
+            return new ReadOnlyIterator<EmbeddedDictionary<TKey, TValue>.HashEntry, EmbeddedDictionary<TKey, TValue>.ReadOnlyIteratorStrategy>(AsSpan());
         }
         #endregion
     }

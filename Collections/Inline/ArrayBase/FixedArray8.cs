@@ -21,7 +21,7 @@ namespace Soe.Collections.Inline
         where T : class?
     {
         private const int DefaultCapacity = 8;
-            
+        
         private object element0;
 
         /// <inheritdoc/>
